@@ -12,7 +12,7 @@ router.get('/userdetails/:address' , errorHandler , getProfile)
 
 // package Router 
 router.post('/buyPackage',errorHandler,buyPackage);
-router.get('/fetchPackages',errorHandler,fetchPackage);
+router.post('/fetchPackages',errorHandler,fetchPackage);
 
 //slot Routers
 router.post('/buySlots',errorHandler,buySlot);
