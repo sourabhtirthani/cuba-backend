@@ -11,7 +11,7 @@ export const createProfile = async (req, res)=>{
         }
         const exists = await users.findOne({address});
         if(exists){
-            return res.status(400).json({error : "Error in creating profile! user with athat address already exists"})
+            return res.status(200).json({error : "User already exists"})
         }
         const totalUsers = await users.countDocuments({});   //finds the total number of documents 
         const newUserId = totalUsers + 501;    //adds 500 to the total doument to get the new id..id starting from 501
@@ -59,7 +59,7 @@ export const updateProfile = async(req, res)=>{
         if(!existingUser){
             return res.status(400).json({error : "No such user found"})
         }
-        const profilePicture =  req.files?.profilePicture ? req.files.profilePicture[0].filename : existingUser.profilePicture;
+        // const profilePicture =  req.files?.profilePicture ? req.files.profilePicture[0].filename : existingUser.profilePicture;
         const updateObject = {};
         if (email) updateObject.email = email;       // pushes the details inside the updated object if it exists in the body
         if (name) updateObject.name = name;

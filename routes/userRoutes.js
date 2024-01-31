@@ -16,7 +16,7 @@ router.get('/fetchPackages',errorHandler,fetchPackage);
 
 //slot Routers
 router.post('/buySlots',errorHandler,buySlot);
-router.get('/fetchSlots',errorHandler,fetchslot)
+router.post('/fetchSlots',errorHandler,fetchslot)
 
 
 export default router;
