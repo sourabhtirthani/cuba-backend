@@ -5,13 +5,14 @@ import users from "../models/users.js";
 export const createProfile = async (req, res)=>{
     try{
         const {address , referBy, transactionHash, email , name, mobileNumber} = req.body;
+        // console.log(`addres is : ${address} , ,, referby : ${referBy} , transaction has his : ${transactionHash}`)
         const profilePicture =  req.files?.profilePicture ? req.files.profilePicture[0].filename : undefined;
-        if(!address || !referBy || !transactionHash){
+        if(!address  || !transactionHash){
             return res.status(400).json({message : "Please provide all the details"});
         }
         const exists = await users.findOne({address});
         if(exists){
-            return res.status(200).json({error : "User already exists"})
+            return res.status(200).json({message : "User already exists" , userId : exists.userId})
         }
         const totalUsers = await users.countDocuments({});   //finds the total number of documents 
         const newUserId = totalUsers + 501;    //adds 500 to the total doument to get the new id..id starting from 501
