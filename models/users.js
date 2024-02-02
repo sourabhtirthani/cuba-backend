@@ -67,6 +67,10 @@ const userSchema = new Schema({
     join_time : {
         type : Date,
         default : Date.now
+    },
+    isActive:{
+        type:Boolean,
+        default:false
     }
 }, {timestamps : true})
 

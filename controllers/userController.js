@@ -11,7 +11,7 @@ export const createProfile = async (req, res)=>{
             return res.status(400).json({message : "Please provide all the details"});
         }
         const exists = await users.findOne({address});
-        if(exists){
+        if(exists.isActive){
             return res.status(200).json({message : "User already exists" , userId : exists.userId})
         }
         // Add childs in tree and check reffeal Address
@@ -53,12 +53,6 @@ export const createProfile = async (req, res)=>{
             { new: true }
         );
 
-        // await activities.create({
-        //     userId : newUserId,               // creates teh activity 
-        //     activiy : "New user joined",
-        //     transactionHash : transactionHash,
-        // });
-
         return res.status(200).json({message : "All Good!",data:{"refferAddress":sendHalfAmountForReffal,"uplineAddress":uplineAddresses}})
     }catch(error){
         console.log(`error in create profile : ${error}`);
@@ -66,6 +60,34 @@ export const createProfile = async (req, res)=>{
     }
 }
 
+export const updateData=async(req,res)=>{
+    try{
+        const {address , referBy, transactionHash ,uplineAddresses,amount} = req.body;
+        const exists = await users.findOne({address});
+        if(!exists.isActive){
+            return res.status(200).json({message : "User Not Exits"})
+        }
+        await users.updateOne({address:referBy},{$set:{ refferalIncome:(amount/2)}})
+        const updateDataForUser={
+            transactionHash,
+            isActive:true
+        }
+        await users.updateOne({address},{$set:updateDataForUser});
+        let amountToDistributeInLeveles=amount/2
+        for(let i in uplineAddresses){
+            await users.updateOne({address:uplineAddresses[i]},{$set:{packageIncome:amountToDistributeInLeveles/11}});
+        }
+        await activities.create({
+            userId : exists.userId,            // creates teh activity 
+            activiy : "New user joined",
+            transactionHash : transactionHash,
+        });
+
+        return res.status(200).json({"message":"User Joined successFully"})
+    }catch(error){
+        console.log(`there is error in data updating ${error}`)
+    }
+}
 
 export const updateProfile = async(req, res)=>{
     try{
@@ -102,8 +124,6 @@ export const updateProfile = async(req, res)=>{
         return res.status(500).json({error : "Internal Server error"})
     }
 }
-
-
 
 export const getProfile = async(req, res)=>{
     try{
@@ -158,6 +178,8 @@ async function getUplineAddresses (address, uplineAddresses = [], currentLevel =
     // Recursively traverse up to the parent node
     return getUplineAddresses(userData.referBy, uplineAddresses, currentLevel + 1, maxLevel);
 }
+
+
 export const fetchAllUsers = async(req, res)=>{
     try{
         const {startDate , endDate} = req.query;
