@@ -11,12 +11,16 @@ export const createProfile = async (req, res)=>{
             return res.status(400).json({message : "Please provide all the details"});
         }
         const exists = await users.findOne({address});
+        const isReferExits =await users.findOne({referBy});
+        if(!isReferExits){
+            return res.status(400).json({message : "Reffer Address Not found"})
+        }
         console.log("exists");
         if(exists){
             return res.status(200).json({message : "User already exists" , userId : exists.userId})
         }
         // Add childs in tree and check reffeal Address
-        
+
         const checkReffalDeatils=await users.findOne({referBy});
         console.log("referBy",referBy);
         let sendHalfAmountForReffal=referBy;

@@ -21,7 +21,49 @@ export const buyPackage=async(req,res)=>{
         }
         let  refferAddressOfUser=exists.referBy;
         //==================================================//
-        
+        let upgradePackgeAddress;
+        let upgradePackgeAddressData;
+        if(packageType=='20'){
+            upgradePackgeAddress=await getUplineAddresses(address,2);
+            upgradePackgeAddressData=await users.findOne({upgradePackgeAddress})
+            if(!(upgradePackgeAddress && upgradePackgeAddressData.packageBought.includes(packageType))){
+                upgradePackgeAddress=await getUplineAddresses(address,3);
+                upgradePackgeAddressData=await users.findOne({upgradePackgeAddress})
+                if(!(upgradePackgeAddress && upgradePackgeAddressData.packageBought.includes(packageType))){
+                    upgradePackgeAddress=await getUplineAddresses(address,4);
+                    upgradePackgeAddressData=await users.findOne({upgradePackgeAddress})
+                    if(!(upgradePackgeAddress && upgradePackgeAddressData.packageBought.includes(packageType))){
+                        upgradePackgeAddress=await getUplineAddresses(address,5);
+                        upgradePackgeAddressData=await users.findOne({upgradePackgeAddress})
+                        if(!(upgradePackgeAddress && upgradePackgeAddressData.packageBought.includes(packageType))){
+                            upgradePackgeAddress=await getUplineAddresses(address,6);
+                            upgradePackgeAddressData=await users.findOne({upgradePackgeAddress})
+                            if(!(upgradePackgeAddress && upgradePackgeAddressData.packageBought.includes(packageType))){
+                                upgradePackgeAddress=await getUplineAddresses(address,7);
+                                upgradePackgeAddressData=await users.findOne({upgradePackgeAddress})
+                                if(!(upgradePackgeAddress && upgradePackgeAddressData.packageBought.includes(packageType))){
+                                    upgradePackgeAddress=await getUplineAddresses(address,8);
+                                    upgradePackgeAddressData=await users.findOne({upgradePackgeAddress})
+                                    if(!(upgradePackgeAddress && upgradePackgeAddressData.packageBought.includes(packageType))){
+                                        upgradePackgeAddress=await getUplineAddresses(address,9);
+                                        upgradePackgeAddressData=await users.findOne({upgradePackgeAddress})
+                                        if(!(upgradePackgeAddress && upgradePackgeAddressData.packageBought.includes(packageType))){
+                                            upgradePackgeAddress=await getUplineAddresses(address,10);
+                                            upgradePackgeAddressData=await users.findOne({upgradePackgeAddress})
+                                            if(!(upgradePackgeAddress && upgradePackgeAddressData.packageBought.includes(packageType))){
+                                                upgradePackgeAddress=await getUplineAddresses(address,11);
+                                                upgradePackgeAddressData=await users.findOne({upgradePackgeAddress})
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+        }
         let {uplineAddresses,currentLevel}=await getUplineAddresses(address);
         let amountToDistributetoRefferal = Number(packageType)/2; // 123
         
@@ -103,7 +145,8 @@ async function getUplineAddresses (address, uplineAddresses = [], currentLevel =
     }
     // Check if the maximum level is reached
     if (currentLevel === maxLevel) {
-        return {uplineAddresses,currentLevel};
+        uplineAddresses.push(userData.referBy)
+        return uplineAddresses;
     }
     // Recursively traverse up to the parent node
     return getUplineAddresses(userData.referBy, uplineAddresses, currentLevel + 1, maxLevel);
