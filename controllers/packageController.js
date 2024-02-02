@@ -9,7 +9,6 @@ export const buyPackage=async(req,res)=>{
         // Check all the values coming from req.body
         if(!userId) res.status(400).json({message:"Invalid userId.userId must contain some value"});
         if(!address) res.status(400).json({message:"Invalid address.address must contain some value"});
-        //if(!transactionHash) res.status(400).json({message:"Invalid transactionHash.transactionHash must contain some value"});
         if(!packageType) res.status(400).json({message:"Invalid packageType.packageType must contain some value"});
         //==================================================//
         // check if user is present in our systwm or not 
@@ -22,16 +21,9 @@ export const buyPackage=async(req,res)=>{
         }
         let  refferAddressOfUser=exists.referBy;
         //==================================================//
-        // If reffer have same package then we will give 50% to reffer address otherwise we will give this to admin 
-        const isRefferHaveSamePackage=await users.findOne({refferAddressOfUser})
-        if(!(isRefferHaveSamePackage.packageBought.includes(packageType))){
-            refferAddressOfUser="0xEC588fcb15A6338c568A15b8c4aC2f735900886f";
-        }
-
+        
         let {uplineAddresses,currentLevel}=await getUplineAddresses(address);
-        console.log("uplineAddress",uplineAddresses);
-        console.log("levels",currentLevel);
-        let amountToDistribute = Number(packageType); // 123
+        let amountToDistributetoRefferal = Number(packageType)/2; // 123
         
         // const boughtPackage = await packages.create({
         //     userId,
@@ -47,7 +39,7 @@ export const buyPackage=async(req,res)=>{
         //     transactionHash 
         // });
 
-        return res.status(200).json({message : "Data Validate successfully",data:{"refferAddress":refferAddressOfUser,"uplineAddress":uplineAddresses,"amountForReffeal":(amountToDistribute/2)}})
+        return res.status(200).json({message : "Data Validate successfully",data:{"refferAddress":refferAddressOfUser,"uplineAddres":uplineAddresses,"amountForReffeal":Number(packageType)}})
 
     }catch (error){
         console.log("error",error.message);
@@ -103,18 +95,35 @@ const filterData = async (userId, startDate, endDate) => {
 };
 
 // Function to traverse up the tree and retrieve upline addresses
-async function getUplineAddresses (address, uplineAddresses = [], currentLevel = 0, maxLevel = 11) {
+async function getUplineAddresses (address, uplineAddresses = [], currentLevel = 1, maxLevel) {
     const userData = await users.findOne({address});
+    
     if (!userData.referBy) {
-        return {uplineAddresses,currentLevel};
+        return uplineAddresses;
     }
-
-    uplineAddresses.push(userData.referBy);
-
     // Check if the maximum level is reached
     if (currentLevel === maxLevel) {
         return {uplineAddresses,currentLevel};
     }
     // Recursively traverse up to the parent node
     return getUplineAddresses(userData.referBy, uplineAddresses, currentLevel + 1, maxLevel);
+}
+
+// Function to get upline addresses at a specific level
+async function getUplineAddressesAtLevel(address, targetLevel, currentLevel = 0) {
+    const userData = await users.findOne({address});
+
+    if (!userData.referBy) {
+        return null;
+    }
+
+    let uplineAddresses;
+
+    while (address && currentLevel < targetLevel) {
+        uplineAddresses=address;
+        node = node.parent;
+        currentLevel++;
+    }
+
+    return uplineAddresses;
 }
