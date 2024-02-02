@@ -15,7 +15,7 @@ const userSchema = new Schema({
     },
     referBy : {
         type : String,
-        required : true
+        require:true
     },
     leftAddress:{
         type:String,
@@ -50,19 +50,24 @@ const userSchema = new Schema({
         type : Number
     },
     refferalIncome:{
-        type: Number
+        type: Number,
+        default:0
     },
     levelIncome:{
-        type:Number
+        type:Number,
+        default:0
     },
     packageIncome:{
-        type:Number
+        type:Number,
+        default:0
     },
     slotIncome:{
-        type:Number
+        type:Number,
+        default:0
     },
     reffalIncomeCounter:{
-        type:Number
+        type:Number,
+        default:0
     },
     join_time : {
         type : Date,

@@ -18,12 +18,9 @@ export const createProfile = async (req, res)=>{
         // Add childs in tree and check reffeal Address
         
         const checkReffalDeatils=await users.findOne({referBy});
+        console.log("referBy",referBy);
         let sendHalfAmountForReffal=referBy;
-        if(checkReffalDeatils.reffalIncomeCounter<=10 && checkReffalDeatils.packageBought.includes('20')){
-            sendHalfAmountForReffal=process.env.adminAddress;
-        }
         
-        let {uplineAddresses,currentLevel}=await getUplineAddresses(referBy);
         let treeResult =await traverseTree(referBy);
         treeResult=await treeResult;
         if(treeResult.position=="LEFT"){
@@ -31,12 +28,9 @@ export const createProfile = async (req, res)=>{
         }else{
             await users.updateOne({address:treeResult.parentAddress},{$set:{ rightAddress:address}})
         }
-        console.log("uplineAddress",uplineAddresses);
-        console.log("levels",currentLevel);
-        
         const totalUsers = await users.countDocuments({});   //finds the total number of documents 
         const newUserId = totalUsers + 501;    //adds 500 to the total doument to get the new id..id starting from 501
-
+        
         const newUser = await users.create({
             address,
             email,
@@ -47,14 +41,15 @@ export const createProfile = async (req, res)=>{
             mobileNumber
         });
         await newUser.save();
-
+        
         await users.findOneAndUpdate(
             { address: referBy },
             { $push: { referTo: address } },        //updates the referto array and adds the new user that he referred to his array
             { new: true }
-        );
-
-        return res.status(200).json({message : "All Good!",data:{"refferAddress":sendHalfAmountForReffal,"uplineAddress":uplineAddresses}})
+            );
+            let {uplineAddresses,currentLevel}=await getUplineAddresses(referBy);
+            
+            return res.status(200).json({message : "All Good!",data:{"refferAddress":sendHalfAmountForReffal,"uplineAddress":uplineAddresses}})
     }catch(error){
         console.log(`error in create profile : ${error}`);
         return res.status(500).json({error : "Internal Server error"})
