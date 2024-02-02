@@ -1,21 +1,28 @@
 import activities from "../models/activity.js";
 import users from "../models/users.js";
-
-
+import dotenv from 'dotenv'
+dotenv.config();
 export const createProfile = async (req, res)=>{
     try{
-        const {address , referBy, transactionHash, email , name, mobileNumber} = req.body;
+        const {address , referBy, email , name, mobileNumber} = req.body;
         // console.log(`addres is : ${address} , ,, referby : ${referBy} , transaction has his : ${transactionHash}`)
         const profilePicture =  req.files?.profilePicture ? req.files.profilePicture[0].filename : undefined;
-        if(!address  || !transactionHash){
+        if(!address  || !referBy){
             return res.status(400).json({message : "Please provide all the details"});
         }
         const exists = await users.findOne({address});
         if(exists){
             return res.status(200).json({message : "User already exists" , userId : exists.userId})
         }
-        // Add childs in tree 
-
+        // Add childs in tree and check reffeal Address
+        
+        const checkReffalDeatils=await users.findOne({referBy});
+        let sendHalfAmountForReffal=referBy;
+        if(checkReffalDeatils.reffalIncomeCounter<=10 && checkReffalDeatils.packageBought.includes('20')){
+            sendHalfAmountForReffal=process.env.adminAddress;
+        }
+        
+        let {uplineAddresses,currentLevel}=await getUplineAddresses(referBy);
         let treeResult =await traverseTree(referBy);
         treeResult=await treeResult;
         if(treeResult.position=="LEFT"){
@@ -23,13 +30,14 @@ export const createProfile = async (req, res)=>{
         }else{
             await users.updateOne({address:treeResult.parentAddress},{$set:{ rightAddress:address}})
         }
-
+        console.log("uplineAddress",uplineAddresses);
+        console.log("levels",currentLevel);
+        
         const totalUsers = await users.countDocuments({});   //finds the total number of documents 
         const newUserId = totalUsers + 501;    //adds 500 to the total doument to get the new id..id starting from 501
 
         const newUser = await users.create({
             address,
-            transactionHash,
             email,
             name,
             referBy,
@@ -45,15 +53,15 @@ export const createProfile = async (req, res)=>{
             { new: true }
         );
 
-        await activities.create({
-            userId : newUserId,               // creates teh activity 
-            activiy : "New user joined",
-            transactionHash : transactionHash,
-        });
+        // await activities.create({
+        //     userId : newUserId,               // creates teh activity 
+        //     activiy : "New user joined",
+        //     transactionHash : transactionHash,
+        // });
 
-        return res.status(200).json({message : "Profile created successfully"})
+        return res.status(200).json({message : "All Good!",data:{"refferAddress":sendHalfAmountForReffal,"uplineAddress":uplineAddresses}})
     }catch(error){
-        console.log(`error in create profile : ${error.message}`);
+        console.log(`error in create profile : ${error}`);
         return res.status(500).json({error : "Internal Server error"})
     }
 }
@@ -133,3 +141,20 @@ const traverseTree=async(address)=>{
     }
 }
 
+
+// Function to traverse up the tree and retrieve upline addresses
+async function getUplineAddresses (address, uplineAddresses = [], currentLevel = 0, maxLevel = 11) {
+    const userData = await users.findOne({address});
+    if (!userData.referBy) {
+        return {uplineAddresses,currentLevel};
+    }
+
+    uplineAddresses.push(userData.referBy);
+
+    // Check if the maximum level is reached
+    if (currentLevel === maxLevel) {
+        return {uplineAddresses,currentLevel};
+    }
+    // Recursively traverse up to the parent node
+    return getUplineAddresses(userData.referBy, uplineAddresses, currentLevel + 1, maxLevel);
+}

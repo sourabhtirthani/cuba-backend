@@ -33,7 +33,7 @@ const userSchema = new Schema({
     }],
     transactionHash : {
         type : String,
-        required : true
+        default:null
     },
     referTo : [{
         type : String
@@ -48,6 +48,21 @@ const userSchema = new Schema({
     },
     userId : {
         type : Number
+    },
+    refferalIncome:{
+        type: Number
+    },
+    levelIncome:{
+        type:Number
+    },
+    packageIncome:{
+        type:Number
+    },
+    slotIncome:{
+        type:Number
+    },
+    reffalIncomeCounter:{
+        type:Number
     },
     join_time : {
         type : Date,
