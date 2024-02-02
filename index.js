@@ -7,6 +7,7 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import cors from 'cors'
+import adminRoutes from './routes/adminRoutes.js';
 const app = express();
 const PORT = 5000;
 
@@ -20,6 +21,7 @@ app.use(cors());
 
 app.use('/api/users' , userRoutes);
 app.use('/api/activities' , activityRoutes);
+app.use('/api/admin' , adminRoutes)
 
 app.listen(PORT, ()=>{
     console.log(`server started on port : ${PORT}`)
