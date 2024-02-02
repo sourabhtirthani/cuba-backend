@@ -1,4 +1,5 @@
 import express from 'express'
+import activityRoutes from './routes/activityRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import packages from './models/packageInfo.js'
 import { connectToDB } from './database/db.js';
@@ -18,6 +19,7 @@ app.use(express.urlencoded({extended : false}));
 app.use(cors());
 
 app.use('/api/users' , userRoutes);
+app.use('/api/activities' , activityRoutes);
 
 app.listen(PORT, ()=>{
     console.log(`server started on port : ${PORT}`)

@@ -158,3 +158,70 @@ async function getUplineAddresses (address, uplineAddresses = [], currentLevel =
     // Recursively traverse up to the parent node
     return getUplineAddresses(userData.referBy, uplineAddresses, currentLevel + 1, maxLevel);
 }
+export const fetchAllUsers = async(req, res)=>{
+    try{
+        const {startDate , endDate} = req.query;
+       
+        if ((startDate && isNaN(Date.parse(startDate))) || (endDate && isNaN(Date.parse(endDate)))) {
+            return res.status(400).json({ error: "Invalid date format" });  // YYYY-MM-DD
+          }
+        let allUsers;
+        if(startDate && endDate){
+            allUsers = await filterData(startDate , endDate);
+        }else{
+            allUsers = await users.find({});
+        }
+
+        return res.status(200).json({allUsers});
+
+    }catch(error){
+        console.log(`error in fetch all users in controllers : ${error.message}`);
+        return res.status(500).json({error : "Internal server error"})
+    }
+}
+
+const filterData = async ( startDate, endDate ) => {            // this function is used in fetch all users
+    let query;
+  if (startDate && endDate) {
+    const sdate = new Date(startDate);
+    const edate = new Date(endDate);
+    query = {
+        createdAt: { $gte: sdate, $lte: edate },
+      };
+  let res = await users.find(query);
+  return res;
+};
+}
+
+
+export const fetchMyReferral = async(req, res)=>{
+    try{
+        const {address} = req.params;
+        const {startDate , endDate} = req.query;
+        // console.log(`the address is : ${address} and the start date is : ${startDate} and the enddatae is : ${endDate}`)
+        if(!address){
+            return res.status(400).json({error : "Please provide address"});
+        }
+        const userDetails = await users.findOne({address : address});
+        if(!userDetails){
+            return res.status(400).json({error : "No such user found with that address"});
+        }
+        if ((startDate && isNaN(Date.parse(startDate))) || (endDate && isNaN(Date.parse(endDate)))) {
+            return res.status(400).json({ error: "Invalid date format" });   // YYYY-MM-DD
+          }
+        let referToUsers;
+        if(startDate && endDate){
+            referToUsers = await users.find({ address : {$in : userDetails.referTo || []} , createdAt : {$gte : new Date(startDate), $lte : new Date(endDate)}});
+        }else{
+            referToUsers = await users.find({ address: { $in: userDetails.referTo || [] } });
+        }
+        return res.status(200).json({referToUsers});
+
+    }catch(error){
+        console.log(`error in fetch my referral in controllers : ${error.message}`)
+        return res.status(500).json({error : "Internal server error"});
+    }
+}
+
+
+
