@@ -13,6 +13,16 @@ export const createProfile = async (req, res)=>{
         if(exists){
             return res.status(200).json({error : "User already exists"})
         }
+        // Add childs in tree 
+
+        let treeResult =await traverseTree(referBy);
+        treeResult=await treeResult;
+        if(treeResult.position=="LEFT"){
+            await users.updateOne({address:treeResult.parentAddress},{$set:{ leftAddress:address}})
+        }else{
+            await users.updateOne({address:treeResult.parentAddress},{$set:{ rightAddress:address}})
+        }
+
         const totalUsers = await users.countDocuments({});   //finds the total number of documents 
         const newUserId = totalUsers + 501;    //adds 500 to the total doument to get the new id..id starting from 501
 
@@ -104,3 +114,21 @@ export const getProfile = async(req, res)=>{
         return res.status(500).json({error : "Internal Server error"})
     }
 }
+
+
+const traverseTree=async(address)=>{
+    console.log("address",address)
+    const userData = await users.findOne({address});
+    if(!userData.leftAddress)  return {"parentAddress":address,"position":"LEFT"}
+    if(!userData.rightAddress) return {"parentAddress":address,"position":"RIGHT"}
+
+    if(userData.leftAddress) {
+       let leftAddressRes=await traverseTree(userData.leftAddress)
+       return leftAddressRes;
+    };
+    if(userData.rightAddress) {
+        let rightAddressRes= await  traverseTree(userData.rightAddress);
+        return rightAddressRes;
+    }
+}
+

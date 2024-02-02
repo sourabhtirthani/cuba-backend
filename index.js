@@ -1,5 +1,6 @@
 import express from 'express'
 import userRoutes from './routes/userRoutes.js'
+import packages from './models/packageInfo.js'
 import { connectToDB } from './database/db.js';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -21,4 +22,3 @@ app.use('/api/users' , userRoutes);
 app.listen(PORT, ()=>{
     console.log(`server started on port : ${PORT}`)
 });
-

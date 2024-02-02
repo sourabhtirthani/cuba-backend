@@ -17,6 +17,20 @@ const userSchema = new Schema({
         type : String,
         required : true
     },
+    leftAddress:{
+        type:String,
+        default:null
+    },
+    rightAddress:{
+        type:String,
+        default:null
+    },
+    packageBought:[{
+        type:String,
+    }],
+    slotBought:[{
+        type:String,
+    }],
     transactionHash : {
         type : String,
         required : true
