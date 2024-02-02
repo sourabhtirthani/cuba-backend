@@ -11,7 +11,7 @@ export const createProfile = async (req, res)=>{
             return res.status(400).json({message : "Please provide all the details"});
         }
         const exists = await users.findOne({address});
-        const isReferExits =await users.findOne({referBy});
+        const isReferExits =await users.findOne({address:referBy});
         if(!isReferExits){
             return res.status(400).json({message : "Reffer Address Not found"})
         }
