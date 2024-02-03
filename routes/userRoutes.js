@@ -10,7 +10,7 @@ router.post('/create' , [upload.fields([{ name: 'profilePicture', maxCount: 1 }]
 router.patch('/update' ,[upload.fields([{ name: 'profilePicture', maxCount: 1 }]),errorHandler], errorHandler, updateProfile )
 router.get('/userdetails/:address' , errorHandler , getProfile)
 router.patch('/updateData',errorHandler,updateData)
-router.get('/checkUser',errorHandler,checkUser)
+router.get('/checkUser/:address',errorHandler,checkUser)
 // package Router 
 router.post('/buyPackage',errorHandler,buyPackage);
 router.post('/fetchPackages',errorHandler,fetchPackage);

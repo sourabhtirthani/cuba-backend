@@ -61,9 +61,8 @@ export const createProfile = async (req, res)=>{
 }
 
 export const checkUser=async(req,res)=>{
-    const {address} = req.body;
+    try{const {address} = req.params;
     // console.log(`addres is : ${address} , ,, referby : ${referBy} , transaction has his : ${transactionHash}`)
-    const profilePicture =  req.files?.profilePicture ? req.files.profilePicture[0].filename : undefined;
     if(!address){
         return res.status(400).json({message : "Please provide all the details"});
     }
@@ -71,9 +70,12 @@ export const checkUser=async(req,res)=>{
     if(exists){
         return res.status(200).json({message:"User Found",data:exists});
     }else{
-        return res.status(400).json({message:"User not Found",data:null});
+        return res.status(200).json({message:"User not Found",data:null});
 
     }
+}catch(error){
+    return res.status(400).json({error:error.message})
+}
 }
 
 export const updateData=async(req,res)=>{
