@@ -80,7 +80,7 @@ export const checkUser=async(req,res)=>{
 
 export const updateData=async(req,res)=>{
     try{
-        const {address , referBy, transactionHash ,uplineAddresses,amount} = req.body;
+        const {address , referBy, transactionHash ,uplineAddresses,amount,levelDistribution} = req.body;
         const exists = await users.findOne({address});
         if(!exists){
             return res.status(200).json({message : "User Not Exits"})
@@ -93,7 +93,7 @@ export const updateData=async(req,res)=>{
         await users.updateOne({address},{$set:updateDataForUser});
         let amountToDistributeInLeveles=amount/2
         for(let i in uplineAddresses){
-            await users.updateOne({"address":uplineAddresses[i]},{$set:{"levelIncome":amountToDistributeInLeveles/11}});
+            await users.updateOne({"address":uplineAddresses[i]},{$set:{"levelIncome":levelDistribution[i]}});
         }
         await activities.create({
             userId : exists.userId,            // creates teh activity 
@@ -116,7 +116,7 @@ export const updateProfile = async(req, res)=>{
         }
         const existingUser = await users.findOne({address : address});
         if(!existingUser){
-            return res.status(400).json({error : "No such user found"})
+            return res.status(400).json({message : "No such user found"})
         }
         // const profilePicture =  req.files?.profilePicture ? req.files.profilePicture[0].filename : existingUser.profilePicture;
         const updateObject = {};
