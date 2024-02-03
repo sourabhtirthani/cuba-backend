@@ -1,11 +1,11 @@
 import users from '../models/users'
-export const getAddress = async () => {
+export const getAddress = async (packageType,address) => {
     let upgradePackgeAddress;
     let upgradePackgeAddressData;
     if (packageType == '20') {
         upgradePackgeAddress = await getUplineAddresses(address, 2);
         upgradePackgeAddressData = await users.findOne({
-            upgradePackgeAddress
+            address:upgradePackgeAddress
         })
         if (!(upgradePackgeAddress && upgradePackgeAddressData.packageBought.includes(packageType))) {
             upgradePackgeAddress = await getUplineAddresses(address, 3);
@@ -307,4 +307,19 @@ export const getAddress = async () => {
             upgradePackgeAddress
         })
     }
+}
+
+async function getUplineAddresses (address, currentLevel = 1, maxLevel) {
+    const userData = await users.findOne({address});
+    let uplineAddresses;
+    if (!userData.referBy) {
+        return uplineAddresses;
+    }
+    // Check if the maximum level is reached
+    if (currentLevel === maxLevel) {
+        uplineAddresses.push(userData.referBy)
+        return uplineAddresses;
+    }
+    // Recursively traverse up to the parent node
+    return getUplineAddresses(userData.referBy, uplineAddresses, currentLevel + 1, maxLevel);
 }

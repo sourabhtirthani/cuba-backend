@@ -27,7 +27,7 @@ export const createProfile = async (req, res)=>{
         let sendHalfAmountForReffal=referBy;
         
         let treeResult =await traverseTree(referBy);
-        treeResult=await treeResult;
+        console.log("treeResult",treeResult);
         if(treeResult.position=="LEFT"){
             await users.updateOne({address:treeResult.parentAddress},{$set:{ leftAddress:address}})
         }else{
@@ -166,17 +166,27 @@ export const getProfile = async(req, res)=>{
 const traverseTree=async(address)=>{
     console.log("address",address)
     const userData = await users.findOne({address});
-    if(!userData.leftAddress)  return {"parentAddress":address,"position":"LEFT"}
-    if(!userData.rightAddress) return {"parentAddress":address,"position":"RIGHT"}
+    let addressforTree;
+    if(userData){
+        if(!userData.leftAddress) { 
+            addressforTree={"parentAddress":address,"position":"LEFT"}
+            return addressforTree;
+    }
+    if(!userData.rightAddress) {
+        addressforTree={"parentAddress":address,"position":"RIGHT"}
+            return addressforTree;
+    }
 
     if(userData.leftAddress) {
-       let leftAddressRes=await traverseTree(userData.leftAddress)
-       return leftAddressRes;
+    addressforTree=await traverseTree(userData.leftAddress)
+       return addressforTree;
     };
     if(userData.rightAddress) {
-        let rightAddressRes= await  traverseTree(userData.rightAddress);
-        return rightAddressRes;
+        addressforTree= await  traverseTree(userData.rightAddress);
+        return addressforTree;
     }
+    }else return addressforTree;
+    
 }
 
 
