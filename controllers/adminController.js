@@ -68,7 +68,7 @@ export const updateProfile = async(req, res)=>{
     try{
         const { address, transactionHash, email, name, mobileNumber } = req.body;
         
-        if (!address || !transactionHash) {
+        if (!address ) {         // || !transactionHash transaction hash removed from update  profile 
             return res.status(400).json({ message: "Please provide address and transactionHash" });
         }
         const existingUser = await users.findOne({address : address});
@@ -163,10 +163,10 @@ const filterDataForUsers = async ( startDate, endDate ) => {            // this 
 export const fetchPackage=async(req,res)=>{
     try{
         const {address,userId,startDate, endDate} = req.body;
-        if(!userId) res.status(400).json({message:"Invalid userId.userId must contain some value"});
+        if(!userId) return res.status(400).json({message:"Invalid userId.userId must contain some value"});
         const exists = await users.findOne({address});
         if(!exists){
-            res.status(400).json({message:"User Not Found"});
+            return res.status(400).json({message:"User Not Found"});
         }
         let result = await filterDataForPackage(userId, startDate, endDate);
         console.log("result",result);
@@ -182,7 +182,7 @@ export const fetchPackage=async(req,res)=>{
             array.push({ id: j + i, ...result[i]._doc });
         }
         if(array) res.status(200).json({ result: array });
-        else res.status(404).json({message:"Data Not found"});
+        else return res.status(404).json({message:"Data Not found"});
 
     }catch (error){
         console.log(error.message,"error")
@@ -197,11 +197,8 @@ const filterDataForPackage = async (userId, startDate, endDate) => {
 
     const edate = new Date(endDate);
     query = {
-      $and: [
-        { createdAt: { $gte: sdate, $lte: edate } },
-        { userId: userId }
-      ],
-    };
+        createdAt: { $gte: sdate, $lte: edate },
+      };
   }
   let res = await packages.find(query);
   return res;
@@ -215,10 +212,10 @@ const filterDataForPackage = async (userId, startDate, endDate) => {
 export const fetchslot=async(req,res)=>{
     try{
         const {address,userId,startDate, endDate} = req.body;
-        if(!userId) res.status(400).json({message:"Invalid userId.userId must contain some value"});
+        if(!userId) return res.status(400).json({message:"Invalid userId.userId must contain some value"});
         const exists = await users.findOne({address});
         if(!exists){
-            res.status(400).json({message:"User Not Found"});
+            return res.status(400).json({message:"User Not Found"});
         }
         let result = await filterDataForSlot(userId, startDate, endDate);
         if (!result) {
@@ -232,7 +229,7 @@ export const fetchslot=async(req,res)=>{
             array.push({ id: j + i, ...result[i]._doc });
         }
         if(array) res.status(200).json({ result: array });
-        else res.status(404).json({message:"Data Not found"});
+        else return res.status(404).json({message:"Data Not found"});
 
     }catch (error){
         console.log("error",error.message)
@@ -246,11 +243,8 @@ const filterDataForSlot = async (userId, startDate, endDate) => {
 
     const edate = new Date(endDate);
     query = {
-      $and: [
-        { createdAt: { $gte: sdate, $lte: edate } },
-        { userId: userId }
-      ],
-    };
+        createdAt: { $gte: sdate, $lte: edate },
+      };
   }
   let res = await slots.find(query);
   return res;
