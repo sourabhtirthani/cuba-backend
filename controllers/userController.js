@@ -17,11 +17,12 @@ export const createProfile = async (req, res)=>{
         }
         console.log("exists");
         if(exists){
-            return res.status(200).json({message : "User already exists" , userId : exists.userId})
+            return res.status(200).json({message : "User already exists" , userId : exists})
         }
         // Add childs in tree and check reffeal Address
 
         const checkReffalDeatils=await users.findOne({referBy});
+
         console.log("referBy",referBy);
         let sendHalfAmountForReffal=referBy;
         
@@ -52,11 +53,26 @@ export const createProfile = async (req, res)=>{
             { new: true }
             );
             let {uplineAddresses,currentLevel}=await getUplineAddresses(referBy);
-            
             return res.status(200).json({message : "All Good!",data:{"refferAddress":sendHalfAmountForReffal,"uplineAddress":uplineAddresses}})
     }catch(error){
         console.log(`error in create profile : ${error}`);
         return res.status(500).json({error : "Internal Server error"})
+    }
+}
+
+export const checkUser=async(req,res)=>{
+    const {address} = req.body;
+    // console.log(`addres is : ${address} , ,, referby : ${referBy} , transaction has his : ${transactionHash}`)
+    const profilePicture =  req.files?.profilePicture ? req.files.profilePicture[0].filename : undefined;
+    if(!address){
+        return res.status(400).json({message : "Please provide all the details"});
+    }
+    const exists = await users.findOne({address});
+    if(exists){
+        return res.status(200).json({message:"User Found"});
+    }else{
+        return res.status(400).json({message:"User not Found"});
+
     }
 }
 
