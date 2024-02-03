@@ -69,9 +69,9 @@ export const checkUser=async(req,res)=>{
     }
     const exists = await users.findOne({address});
     if(exists){
-        return res.status(200).json({message:"User Found"});
+        return res.status(200).json({message:"User Found",data:exists});
     }else{
-        return res.status(400).json({message:"User not Found"});
+        return res.status(400).json({message:"User not Found",data:null});
 
     }
 }
