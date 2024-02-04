@@ -25,7 +25,7 @@ export const createProfile = async (req, res)=>{
         
         const totalUsers = await users.find({}).limit(1).sort({createdAt:-1});   //finds the total number of documents 
         if(!totalUsers) return res.status(500).json({error:"Internel Server Error"});        
-        const newUserId = Number(totalUsers.userId) + 1; 
+        const newUserId = Number(totalUsers[0].userId) + 1; 
         const newUser = await users.create({
             address,
             email,
