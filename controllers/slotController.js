@@ -4,10 +4,9 @@ import users from "../models/users.js";
 
 export const buySlot=async(req,res)=>{
     try{
-        const {userId , address, transactionHash, slotType } = req.body;
+        const {userId , address, slotType } = req.body;
         if(!userId) res.status(400).json({message:"Invalid userId.userId must contain some value"});
         if(!address) res.status(400).json({message:"Invalid address.address must contain some value"});
-        if(!transactionHash) res.status(400).json({message:"Invalid transactionHash.transactionHash must contain some value"});
         if(!slotType) res.status(400).json({message:"Invalid slotType.slotType must contain some value"});
         const exists = await users.findOne({address});
         if(!exists){
