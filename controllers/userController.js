@@ -82,17 +82,24 @@ export const updateData=async(req,res)=>{
     try{
         const {address , referBy, transactionHash ,uplineAddresses,amount,levelDistribution} = req.body;
         const exists = await users.findOne({address});
+        const existsRefer = await users.findOne({address:referBy});
+
         if(!exists){
             return res.status(200).json({message : "User Not Exits"})
         }
-        await users.updateOne({address:referBy},{$set:{ refferalIncome:(amount/2)}})
+        if(!existsRefer){
+            return res.status(200).json({message : "Refer Address Not Exits"})
+        }
+        await users.updateOne({address:referBy},{$set:{ refferalIncome:((existsRefer.refferalIncome)+(amount/2))}})
         const updateDataForUser={
             transactionHash,
             isActive:true
         }
         await users.updateOne({address},{$set:updateDataForUser});
+        let uplineAddressesData;
         for(let i in uplineAddresses){
-            await users.updateOne({"address":uplineAddresses[i]},{$set:{"levelIncome":levelDistribution[i]}});
+            uplineAddressesData=await users.findOne({address:uplineAddresses[i]})
+            await users.updateOne({"address":uplineAddresses[i]},{$set:{"levelIncome":(uplineAddressesData.levelIncome+levelDistribution[i])}});
         }
         await activities.create({
             userId : exists.userId,            // creates teh activity 

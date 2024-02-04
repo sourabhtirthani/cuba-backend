@@ -10,17 +10,17 @@ export const buyPackage=async(req,res)=>{
     try{
         const {userId , address, packageType } = req.body;
         // Check all the values coming from req.body
-        if(!userId) res.status(400).json({message:"Invalid userId.userId must contain some value"});
-        if(!address) res.status(400).json({message:"Invalid address.address must contain some value"});
-        if(!packageType) res.status(400).json({message:"Invalid packageType.packageType must contain some value"});
+        if(!userId) return res.status(400).json({message:"Invalid userId.userId must contain some value"});
+        if(!address) return res.status(400).json({message:"Invalid address.address must contain some value"});
+        if(!packageType) return res.status(400).json({message:"Invalid packageType.packageType must contain some value"});
         //==================================================//
         // check if user is present in our systwm or not 
         const exists = await users.findOne({address});
         if(!exists){
-            res.status(400).json({message:"User Not Found"});
+            return res.status(400).json({message:"User Not Found"});
         }
         if(exists.packageBought.includes(packageType)){
-            res.status(400).json({message:"package Already Bought"});
+            return res.status(400).json({message:"package Already Bought"});
         }
         let  refferAddressOfUser=exists.referBy;
         //==================================================//
@@ -28,20 +28,6 @@ export const buyPackage=async(req,res)=>{
         console.log("packageAddress",packageAddress);
         if(!packageAddress) packageAddress=process.env.admin_address;
         
-        // const boughtPackage = await packages.create({
-        //     userId,
-        //     address,
-        //     transactionHash,
-        //     package:packageType
-        // });
-        // await boughtPackage.save();
-
-        // await activities.create({
-        //     userId ,               // creates teh activity 
-        //     activiy : `ID ${userId} +${packageType}BUSD`,
-        //     transactionHash 
-        // });
-
         return res.status(200).json({message : "Data Validate successfully",data:{"refferAddress":refferAddressOfUser,"packageUpdatAddress":packageAddress,"amount":Number(packageType),"userId":exists.userId}})
 
     }catch (error){
@@ -49,26 +35,42 @@ export const buyPackage=async(req,res)=>{
     }
 }
 
-export const updateData=async(req,res)=>{
+export const updateDataForPackage=async(req,res)=>{
     try{
-        const {address , refferAddress, transactionHash ,packageAddress,amount} = req.body;
+        const {address , refferAddress, transactionHash ,packageAddress,amount,userId} = req.body;
         const exists = await users.findOne({address});
+        const existsRefferAddress = await users.findOne({address:refferAddress});
+        const existsPackageAddress = await users.findOne({address:packageAddress});
         if(!exists){
             return res.status(200).json({message : "User Not Exits"})
         }
-        
-        await users.updateOne({address:refferAddress},{$set:{ refferalIncome:(amount/2)}})
-        await users.updateOne({address},{$set:updateDataForUser});
-        for(let i in uplineAddresses){
-            await users.updateOne({"address":uplineAddresses[i]},{$set:{"levelIncome":levelDistribution[i]}});
+        if(!existsRefferAddress){
+            return res.status(200).json({message : "Reffer Address Not Exits"})
         }
-        await activities.create({
-            userId : exists.userId,            // creates teh activity 
-            activiy : "New user joined",
-            transactionHash : transactionHash,
-        });
+        if(!existsPackageAddress){
+            return res.status(200).json({message : "Package Address Not Exits"})
+        }
 
-        return res.status(200).json({"message":"User Joined successFully"})
+        await users.updateOne({address:refferAddress},{$set:{ refferalIncome:((existsRefferAddress.refferalIncome)+(amount/2))}})
+        await users.updateOne({address:packageAddress},{$set:{ packageIncome:((existsPackageAddress.refferalIncome)+(amount/2))}})
+        await activities.create({
+            userId ,               // creates teh activity 
+            activiy : `ID ${userId} +${amount}BUSD`,
+            transactionHash 
+        });
+        await users.findOneAndUpdate(
+            { address: address },
+            { $push: { packageBought: amount.toString() } },        //updates the referto array and adds the new user that he referred to his array
+            { new: true }
+            ); 
+        const boughtPackage = await packages.create({
+            userId,
+            address,
+            transactionHash,
+            package:amount.toString()
+        });
+        await boughtPackage.save();
+        return res.status(200).json({"message":`User Bought ${amount} BUSD Package successFully`})
     }catch(error){
         console.log(`there is error in data updating ${error}`)
     }
