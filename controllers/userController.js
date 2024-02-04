@@ -1,4 +1,5 @@
 import activities from "../models/activity.js";
+import announcement from "../models/announcement.js";
 import incomeTransactions from "../models/incomeTransactions.js";
 import users from "../models/users.js";
 import dotenv from 'dotenv'
@@ -302,5 +303,20 @@ export const fetchIncomeTransaction = async(req, res)=>{
 
     }catch(error){
         return res.status(500).json({error : "Internal server error"});
+    }
+}
+
+
+export const showAnnouncement = async(req, res)=>{
+    try{
+        const latestAnnouncement = await announcement.findOne().sort({ createdAt: -1 }).exec();
+        if(!latestAnnouncement){
+            return res.status(404).json({error : "No announcement found"})
+        }
+        return res.status(200).json({ statement: latestAnnouncement.statement });
+
+    }catch(error){
+        console.log(`error in showing announcement`);
+        return res.status(500).json({error : "Internal server error"})
     }
 }

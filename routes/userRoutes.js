@@ -1,7 +1,7 @@
 import express from 'express';
 import errorHandler from '../middlewares/errorHandler.js';
 import { upload } from '../middlewares/multer.js';
-import { checkUser, createProfile, fetchAllUsers, fetchIncomeTransaction, fetchMyReferral, getProfile, updateData, updateProfile } from '../controllers/userController.js';
+import { checkUser, createProfile, fetchAllUsers, fetchIncomeTransaction, fetchMyReferral, getProfile, showAnnouncement, updateData, updateProfile } from '../controllers/userController.js';
 import { buyPackage,fetchPackage, updateDataForPackage } from '../controllers/packageController.js';
 import { buySlot, fetchslot } from '../controllers/slotController.js';
 const router = express.Router();
@@ -32,6 +32,10 @@ router.get('/referrals/:address' , fetchMyReferral)  // Note : This route is usi
 
 //income routes
 router.get('/transactions/:address' , fetchIncomeTransaction);
+
+
+//announcements
+router.get('/announcements' , showAnnouncement);
 
 
 export default router;
