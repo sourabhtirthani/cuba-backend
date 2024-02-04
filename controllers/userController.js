@@ -91,7 +91,6 @@ export const updateData=async(req,res)=>{
             isActive:true
         }
         await users.updateOne({address},{$set:updateDataForUser});
-        let amountToDistributeInLeveles=amount/2
         for(let i in uplineAddresses){
             await users.updateOne({"address":uplineAddresses[i]},{$set:{"levelIncome":levelDistribution[i]}});
         }
