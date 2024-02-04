@@ -2,7 +2,7 @@ import express from 'express';
 import errorHandler from '../middlewares/errorHandler.js';
 import { upload } from '../middlewares/multer.js';
 import { checkUser, createProfile, fetchAllUsers, fetchMyReferral, getProfile, updateData, updateProfile } from '../controllers/userController.js';
-import { buyPackage,fetchPackage } from '../controllers/packageController.js';
+import { buyPackage,fetchPackage, updateDataForPackage } from '../controllers/packageController.js';
 import { buySlot, fetchslot } from '../controllers/slotController.js';
 const router = express.Router();
 
@@ -11,9 +11,11 @@ router.patch('/update' ,[upload.fields([{ name: 'profilePicture', maxCount: 1 }]
 router.get('/userdetails/:address' , errorHandler , getProfile)
 router.patch('/updateData',errorHandler,updateData)
 router.get('/checkUser/:address',errorHandler,checkUser)
+
 // package Router 
 router.post('/buyPackage',errorHandler,buyPackage);
 router.post('/fetchPackages',errorHandler,fetchPackage);
+router.patch('/updatePackagedata',updateDataForPackage);
 
 //slot Routers
 router.post('/buySlots',errorHandler,buySlot);
