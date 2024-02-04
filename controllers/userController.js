@@ -1,4 +1,5 @@
 import activities from "../models/activity.js";
+import incomeTransactions from "../models/incomeTransactions.js";
 import users from "../models/users.js";
 import dotenv from 'dotenv'
 dotenv.config();
@@ -117,7 +118,7 @@ export const updateProfile = async(req, res)=>{
     try{
         const { address, transactionHash, email, name, mobileNumber } = req.body;
         
-        if (!address || !transactionHash) {
+        if (!address) {
             return res.status(400).json({ message: "Please provide address and transactionHash" });
         }
         const existingUser = await users.findOne({address : address});
@@ -280,4 +281,30 @@ export const fetchMyReferral = async(req, res)=>{
 }
 
 
+export const fetchIncomeTransaction = async(req, res)=>{
+    try{
+        const { address} = req.params;
+        if(!address){
+            return res.status(400).json({error : "No address provided"})
+        }
+        const exists = await users.findOne({address});
+        if(!exists){
+            return res.status(400).json({error : "No such user found"})
+        }
+        // const allTeam = await users.find({address : exists.referTo});
+        const teamAddresses = exists.referTo;
 
+        const teamTransactions = await incomeTransactions.find({
+            $or : [
+                {fromAddress : {$in : teamAddresses}},
+                {toAddress : {$in : teamAddresses}}
+            ]
+        });
+
+        return res.status(200).json({teamTransactions});
+
+
+    }catch(error){
+        return res.status(500).json({error : "Internal server error"});
+    }
+}

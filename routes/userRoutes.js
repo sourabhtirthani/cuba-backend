@@ -1,7 +1,7 @@
 import express from 'express';
 import errorHandler from '../middlewares/errorHandler.js';
 import { upload } from '../middlewares/multer.js';
-import { checkUser, createProfile, fetchAllUsers, fetchMyReferral, getProfile, updateData, updateProfile } from '../controllers/userController.js';
+import { checkUser, createProfile, fetchAllUsers, fetchIncomeTransaction, fetchMyReferral, getProfile, updateData, updateProfile } from '../controllers/userController.js';
 import { buyPackage,fetchPackage, updateDataForPackage } from '../controllers/packageController.js';
 import { buySlot, fetchslot } from '../controllers/slotController.js';
 const router = express.Router();
@@ -28,6 +28,10 @@ router.get('/allUsers' , fetchAllUsers)      // Note : This route is using query
 
 // router.get('/referrals/:address/:startDate?/:endDate?' , fetchMyReferral)
 router.get('/referrals/:address' , fetchMyReferral)  // Note : This route is using query of start and end date
+
+
+//income routes
+router.get('/transactions/:address' , fetchIncomeTransaction);
 
 
 export default router;
