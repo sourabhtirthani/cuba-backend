@@ -17,6 +17,10 @@ const slotSchema = new Schema({
         type : String,
         default : null
     },
+    parantAddress:{
+        type : String,
+        default : null
+    },
     myTeam:[{
         type:String
     }],

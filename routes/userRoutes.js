@@ -3,7 +3,7 @@ import errorHandler from '../middlewares/errorHandler.js';
 import { upload } from '../middlewares/multer.js';
 import { checkUser, createProfile, fetchAllUsers, fetchIncomeTransaction, fetchMyReferral, getProfile, showAnnouncement, updateData, updateProfile } from '../controllers/userController.js';
 import { buyPackage,fetchPackage, updateDataForPackage } from '../controllers/packageController.js';
-import { buySlot, fetchslot } from '../controllers/slotController.js';
+import { buySlot, fetchslot, updateSlot } from '../controllers/slotController.js';
 const router = express.Router();
 
 router.post('/create' , [upload.fields([{ name: 'profilePicture', maxCount: 1 }]),errorHandler] , createProfile);
@@ -20,6 +20,7 @@ router.patch('/updatePackagedata',updateDataForPackage);
 //slot Routers
 router.post('/buySlots',errorHandler,buySlot);
 router.post('/fetchSlots',errorHandler,fetchslot)
+router.patch('/updateSlotdata',updateSlot);
 
 
 // user Section from frontend routes
