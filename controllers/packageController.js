@@ -80,10 +80,10 @@ export const updateDataForPackage=async(req,res)=>{
 export const fetchPackage=async(req,res)=>{
     try{
         const {address,userId,startDate, endDate} = req.body;
-        if(!userId) res.status(400).json({message:"Invalid userId.userId must contain some value"});
+        if(!userId) return res.status(400).json({message:"Invalid userId.userId must contain some value"});
         const exists = await users.findOne({address});
         if(!exists){
-            res.status(400).json({message:"User Not Found"});
+            return res.status(400).json({message:"User Not Found"});
         }
         let result = await filterData(userId, startDate, endDate);
         console.log("result",result);
@@ -98,8 +98,8 @@ export const fetchPackage=async(req,res)=>{
         for (let i = 0; i < result.length; i++) {
             array.push({ id: j + i, ...result[i]._doc });
         }
-        if(array) res.status(200).json({ result: array });
-        else res.status(404).json({message:"Data Not found"});
+        if(array) return res.status(200).json({ result: array });
+        else return res.status(404).json({message:"Data Not found"});
 
     }catch (error){
         console.log(error.message,"error")

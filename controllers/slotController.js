@@ -6,12 +6,12 @@ import incomeTransactions from '../models/incomeTransactions.js'
 export const buySlot=async(req,res)=>{
     try{
         const {userId , address, slotType } = req.body;
-        if(!userId) res.status(400).json({message:"Invalid userId.userId must contain some value"});
-        if(!address) res.status(400).json({message:"Invalid address.address must contain some value"});
-        if(!slotType) res.status(400).json({message:"Invalid slotType.slotType must contain some value"});
+        if(!userId) return res.status(400).json({message:"Invalid userId.userId must contain some value"});
+        if(!address) return res.status(400).json({message:"Invalid address.address must contain some value"});
+        if(!slotType) return res.status(400).json({message:"Invalid slotType.slotType must contain some value"});
         const exists = await users.findOne({address});
         if(!exists){
-            res.status(400).json({message:"User Not Found"});
+            return res.status(400).json({message:"User Not Found"});
         }
 
         if(slotType=='20'){
@@ -96,10 +96,10 @@ export const buySlot=async(req,res)=>{
 export const fetchslot=async(req,res)=>{
     try{
         const {address,userId,startDate, endDate} = req.body;
-        if(!userId) res.status(400).json({message:"Invalid userId.userId must contain some value"});
+        if(!userId) return res.status(400).json({message:"Invalid userId.userId must contain some value"});
         const exists = await users.findOne({address});
         if(!exists){
-            res.status(400).json({message:"User Not Found"});
+           return res.status(400).json({message:"User Not Found"});
         }
         let result = await filterData(userId, startDate, endDate);
         if (!result) {
@@ -112,7 +112,7 @@ export const fetchslot=async(req,res)=>{
         for (let i = 0; i < result.length; i++) {
             array.push({ id: j + i, ...result[i]._doc });
         }
-        if(array) res.status(200).json({ result: array });
+        if(array) return res.status(200).json({ result: array });
         else res.status(404).json({message:"Data Not found"});
 
     }catch (error){

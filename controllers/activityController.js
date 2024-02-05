@@ -6,7 +6,7 @@ export const fetchAllActivities = async(req, res)=>{
     try{
         const allActivities = await activities.find({}).sort({ createdAt: -1 });;
         if(!allActivities){
-            res.status(400).json({message : "No activities found"});
+            return res.status(400).json({message : "No activities found"});
         }
         return res.status(200).json({allActivities});
 
