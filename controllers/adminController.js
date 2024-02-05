@@ -7,6 +7,7 @@ import admin from "../models/admin.js";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import announcement from "../models/announcement.js";
+import incomeTransactions from "../models/incomeTransactions.js";
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -297,6 +298,18 @@ export const updateAnnouncement = async(req, res)=>{
         return res.status(200).json({message : "Updated successfully"});
     }catch(error){
         console.log(`error in updating announcement : ${error.message}`);
+        return res.status(500).json({error : "Internal server error"});
+    }
+}
+
+
+export const fetchAllIncomes = async(req, res)=>{
+    try{
+        const allIncomes = await incomeTransactions.find({});
+        return res.status(200).json({allIncomes});
+
+    }catch(error){
+        console.log(`error in feth all incomes : ${error.message}`)
         return res.status(500).json({error : "Internal server error"});
     }
 }

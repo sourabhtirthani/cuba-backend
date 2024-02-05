@@ -1,5 +1,5 @@
 import express from 'express'
-import { fetchAllUsers, fetchAllActivities,updateProfile,getProfile,fetchPackage,fetchslot, createProfile, login, updateAnnouncement } from '../controllers/adminController.js';
+import { fetchAllUsers, fetchAllActivities,updateProfile,getProfile,fetchPackage,fetchslot, createProfile, login, updateAnnouncement, fetchAllIncomes } from '../controllers/adminController.js';
 import { upload } from '../middlewares/multer.js';
 import errorHandler from '../middlewares/errorHandler.js';
 import { authenticateToken } from '../middlewares/authMiddleware.js';
@@ -24,5 +24,7 @@ router.get('/activities/all', [errorHandler, authenticateToken] , fetchAllActivi
 //annoouncements
 router.post('/announcements', [errorHandler, authenticateToken] , updateAnnouncement);
 
+//income table route
+router.get('/incomes' , fetchAllIncomes);  // add authmiddleware here 
 
 export default router;
