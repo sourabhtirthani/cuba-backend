@@ -14,35 +14,35 @@ export const buySlot=async(req,res)=>{
             return res.status(400).json({message:"User Not Found"});
         }
 
-        if(slotType=='20'){
+        if(slotType==20){
             if(!(exists.packageBought.includes('20') && exists.packageBought.includes('30') && exists.packageBought.includes('80'))){
                 return res.status(400).json({message:"You can not buy this slot you have to buy 20,30,80 BUSD packages "});
             }
-        }else if(slotType=='50'){
+        }else if(slotType==50){
             if(!(exists.packageBought.includes('160'))){
                 return res.status(400).json({message:"You can not buy this slot you have to buy 160 BUSD packages "});
             }
-        }else if(slotType=='100'){
+        }else if(slotType==100){
             if(!(exists.packageBought.includes('320'))){
                 return res.status(400).json({message:"You can not buy this slot you have to buy 320 BUSD packages "});
             }
-        }else if(slotType=='200'){
+        }else if(slotType==200){
             if(!(exists.packageBought.includes('640'))){
                 return res.status(400).json({message:"You can not buy this slot you have to buy 640 BUSD packages "});
             }
-        }else if(slotType=='500'){
+        }else if(slotType==500){
             if(!(exists.packageBought.includes('1280'))){
                 return res.status(400).json({message:"You can not buy this slot you have to buy 1280 BUSD packages "});
             }
-        }else if(slotType=='800'){
+        }else if(slotType==800){
             if(!(exists.packageBought.includes('2560'))){
                 return res.status(400).json({message:"You can not buy this slot you have to buy 2560 BUSD packages "});
             }
-        }else if(slotType=='1000'){
+        }else if(slotType==1000){
             if(!(exists.packageBought.includes('5120'))){
                 return res.status(400).json({message:"You can not buy this slot you have to buy 5120 BUSD packages "});
             }
-        }else if(slotType=='1500'){
+        }else if(slotType==1500){
             if(!(exists.packageBought.includes('10240'))){
                 return res.status(400).json({message:"You can not buy this slot you have to buy 10240 BUSD packages "});
             }
