@@ -315,16 +315,16 @@ async function getUplineAddresses (address, currentLevel = 1, maxLevel) {
     const userData = await users.findOne({address});
     if(userData){
         let uplineAddresses;
-        if (!userData.referBy) {
+        if (!userData.parentAddress) {
             return uplineAddresses;
         }
         // Check if the maximum level is reached
         if (currentLevel === maxLevel) {
-            uplineAddresses=userData.referBy
+            uplineAddresses=userData.parentAddress
             return uplineAddresses;
         }
         // Recursively traverse up to the parent node
-        return getUplineAddresses(userData.referBy, uplineAddresses, currentLevel + 1, maxLevel);
+        return getUplineAddresses(userData.parentAddress, uplineAddresses, currentLevel + 1, maxLevel);
     }
     
 }
