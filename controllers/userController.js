@@ -23,7 +23,14 @@ export const createProfile = async (req, res)=>{
         }
         console.log("referBy",referBy);
         let sendHalfAmountForReffal=referBy;
-        
+
+        let treeResult =await traverseTree(referBy);
+        console.log("treeResult",treeResult);
+        if(treeResult.position=="LEFT"){
+            await users.updateOne({address:treeResult.parentAddress},{$set:{ leftAddress:address}})
+        }else{
+            await users.updateOne({address:treeResult.parentAddress},{$set:{ rightAddress:address}})
+        }
         
         const totalUsers = await users.find({}).limit(1).sort({createdAt:-1});   //finds the total number of documents 
         if(!totalUsers) return res.status(500).json({error:"Internel Server Error"});        
@@ -44,7 +51,7 @@ export const createProfile = async (req, res)=>{
             { $push: { referTo: address } },        //updates the referto array and adds the new user that he referred to his array
             { new: true }
             );
-            let {uplineAddresses,currentLevel}=await getUplineAddresses(referBy);
+            let {uplineAddresses,currentLevel}=await getUplineAddresses(address);
             return res.status(200).json({message : "All Good!",data:{"refferAddress":sendHalfAmountForReffal,"uplineAddress":uplineAddresses}})
     }catch(error){
         console.log(`error in create profile : ${error}`);
@@ -75,13 +82,7 @@ export const updateData=async(req,res)=>{
         const {address , referBy, transactionHash ,uplineAddresses,amount,levelDistribution} = req.body;
         const exists = await users.findOne({address});
         const existsRefer = await users.findOne({address:referBy});
-        let treeResult =await traverseTree(referBy);
-        console.log("treeResult",treeResult);
-        if(treeResult.position=="LEFT"){
-            await users.updateOne({address:treeResult.parentAddress},{$set:{ leftAddress:address}})
-        }else{
-            await users.updateOne({address:treeResult.parentAddress},{$set:{ rightAddress:address}})
-        }
+        
         if(!exists){
             return res.status(200).json({message : "User Not Exits"})
         }
