@@ -202,18 +202,18 @@ const traverseTree=async(address)=>{
 // Function to traverse up the tree and retrieve upline addresses
 async function getUplineAddresses (address, uplineAddresses = [], currentLevel = 0, maxLevel = 11) {
     const userData = await users.findOne({address});
-    if (!userData.referBy) {
+    if (!userData.parentAddress) {
         return {uplineAddresses,currentLevel};
     }
 
-    uplineAddresses.push(userData.referBy);
+    uplineAddresses.push(userData.parentAddress);
 
     // Check if the maximum level is reached
     if (currentLevel === maxLevel) {
         return {uplineAddresses,currentLevel};
     }
     // Recursively traverse up to the parent node
-    return getUplineAddresses(userData.referBy, uplineAddresses, currentLevel + 1, maxLevel);
+    return getUplineAddresses(userData.parentAddress, uplineAddresses, currentLevel + 1, maxLevel);
 }
 
 

@@ -25,10 +25,11 @@ export const buyPackage=async(req,res)=>{
             if(!(exists.packageBought.includes('20'))) return res.status(400).json({message:"Please Buy 20$ package First"})
         }
         if(packageType=='80'){
-            if(!(exists.packageBought.includes('20','30'))) return res.status(400).json({message:"Please Buy 20$,30$ package First"})
+            console.log("(exists.packageBought.includes(['20','30'])",exists.packageBought.includes('20'));
+            if(!(exists.packageBought.includes('20') && exists.packageBought.includes('30'))) return res.status(400).json({message:"Please Buy 20$,30$ package First"})
         }
         if(packageType=='160'){
-            if(!(exists.packageBought.includes('20','30','80'))) return res.status(400).json({message:"Please Buy 20$,30$,80$ package First"})
+            if(!(exists.packageBought.includes('20') && exists.packageBought.includes('30') && exists.packageBought.includes('80'))) return res.status(400).json({message:"Please Buy 20$,30$,80$ package First"})
         }
         if(packageType=='320'){
             if(!(exists.packageBought.includes('20','30','80','160'))) return res.status(400).json({message:"Please Buy 20$,30$,80$,160$ package First"})
