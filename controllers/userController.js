@@ -157,11 +157,12 @@ export const getProfile = async(req, res)=>{
         if(!address){
             return res.status(400).json({error : "Please specify the address of the user."})
         }
-        const exists = await users.findOne({ address: address });
+        const exists = await users .findOne({ address: address });
         if (!exists) {
             return res.status(400).json({ message: "No such user found" });
         } else {
-            return res.status(200).json({ userData: exists })
+            const userRefferData=users.findOne({ address: exists.referBy });
+            return res.status(200).json({ userData: exists,data:userRefferData.userId})
         }
 
     }catch(error){

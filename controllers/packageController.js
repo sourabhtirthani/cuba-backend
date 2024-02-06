@@ -10,7 +10,33 @@ export const buyPackage=async(req,res)=>{
     try{
         const {userId , address, packageType } = req.body;
         let Packages=['20','30','80','160','320','640','1280','2560','5120','10240'];
-        
+        if(packageType=='30'){
+            if(!(exists.packageBought.includes('20'))) return res.status(400).josn({message:"Please Buy 20$ package First"})
+        }
+        if(packageType=='80'){
+            if(!(exists.packageBought.includes('20','30'))) return res.status(400).josn({message:"Please Buy 20$,30$ package First"})
+        }
+        if(packageType=='160'){
+            if(!(exists.packageBought.includes('20','30','80'))) return res.status(400).josn({message:"Please Buy 20$,30$,80$ package First"})
+        }
+        if(packageType=='320'){
+            if(!(exists.packageBought.includes('20','30','80','160'))) return res.status(400).josn({message:"Please Buy 20$,30$,80$,160$ package First"})
+        }
+        if(packageType=='1280'){
+            if(!(exists.packageBought.includes('20','30','80','160','320'))) return res.status(400).josn({message:"Please Buy 20$,30$,80$,160$,320$ package First"})
+        }
+        if(packageType=='1280'){
+            if(!(exists.packageBought.includes('20','30','80','160','320','640'))) return res.status(400).josn({message:"Please Buy 20$,30$,80$,160$,320$,640$ package First"})
+        }
+        if(packageType=='2560'){
+            if(!(exists.packageBought.includes('20','30','80','160','320','640','1280'))) return res.status(400).josn({message:"Please Buy 20$,30$,80$,160$,320$,640$,1280$ package First"})
+        }
+        if(packageType=='5120'){
+            if(!(exists.packageBought.includes('20','30','80','160','320','640','1280','2560'))) return res.status(400).josn({message:"Please Buy 20$,30$,80$,160$,320$,640$,1280$,2560$ package First"})
+        }
+        if(packageType=='10240'){
+            if(!(exists.packageBought.includes('20','30','80','160','320','640','1280','2560','5120'))) return res.status(400).josn({message:"Please Buy 20$,30$,80$,160$,320$,640$,1280$,2560$,5120$ package First"})
+        }
         // Check all the values coming from req.body
         if(!userId) return res.status(400).json({message:"Invalid userId.userId must contain some value"});
         if(!address) return res.status(400).json({message:"Invalid address.address must contain some value"});
