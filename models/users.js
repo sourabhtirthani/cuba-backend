@@ -25,6 +25,10 @@ const userSchema = new Schema({
         type:String,
         default:null
     },
+    parentAddress:{
+        type:String,
+        default:null
+    },
     packageBought:[{
         type:String,
     }],

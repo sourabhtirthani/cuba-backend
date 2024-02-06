@@ -40,6 +40,7 @@ export const createProfile = async (req, res)=>{
             email,
             name,
             referBy,
+            parentAddress:treeResult.parentAddress,
             profilePicture,
             userId : newUserId,
             mobileNumber
@@ -79,7 +80,7 @@ export const checkUser=async(req,res)=>{
 
 export const updateData=async(req,res)=>{
     try{
-        const {address , referBy, transactionHash ,uplineAddresses,amount,levelDistribution} = req.body;
+        const {address , referBy, transactionHash ,uplineAddresses,amount,levelDistribution,adminIncome} = req.body;
         const exists = await users.findOne({address});
         const existsRefer = await users.findOne({address:referBy});
         
@@ -90,6 +91,7 @@ export const updateData=async(req,res)=>{
             return res.status(200).json({message : "Refer Address Not Exits"})
         }
         await users.updateOne({address:referBy},{$set:{ refferalIncome:((existsRefer.refferalIncome)+(amount/2))}})
+        await users.updateOne({address:process.env.admin_address},{$set:{ "levelIncome":adminIncome}})
         const updateDataForUser={
             transactionHash,
             isActive:true
@@ -100,6 +102,7 @@ export const updateData=async(req,res)=>{
             uplineAddressesData=await users.findOne({address:uplineAddresses[i]})
             await users.updateOne({"address":uplineAddresses[i]},{$set:{"levelIncome":(uplineAddressesData.levelIncome+levelDistribution[i])}});
         }
+
         await activities.create({
             userId : exists.userId,            // creates teh activity 
             activiy : "New user joined",

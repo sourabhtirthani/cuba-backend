@@ -9,6 +9,8 @@ import users from "../models/users.js";
 export const buyPackage=async(req,res)=>{
     try{
         const {userId , address, packageType } = req.body;
+        let Packages=['20','30','80','160','320','640','1280','2560','5120','10240'];
+        
         // Check all the values coming from req.body
         if(!userId) return res.status(400).json({message:"Invalid userId.userId must contain some value"});
         if(!address) return res.status(400).json({message:"Invalid address.address must contain some value"});
