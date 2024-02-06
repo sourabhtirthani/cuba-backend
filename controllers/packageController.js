@@ -1,9 +1,9 @@
-import { getAddress } from "../helpers/getPackageAddress.js";
+import users from "../models/users.js";
+import { getAddress } from "../helperss/getPackageAddress.js";
 import activities from "../models/activity.js";
 import packages from "../models/package.js";
 // import getAddress from '../helpers/getPackageAddress.js'
 
-import users from "../models/users.js";
 
 // function for insert data in package model 
 export const buyPackage=async(req,res)=>{
@@ -32,29 +32,29 @@ export const buyPackage=async(req,res)=>{
             if(!(exists.packageBought.includes('20') && exists.packageBought.includes('30') && exists.packageBought.includes('80'))) return res.status(400).json({message:"Please Buy 20$,30$,80$ package First"})
         }
         if(packageType=='320'){
-            if(!(exists.packageBought.includes('20','30','80','160'))) return res.status(400).json({message:"Please Buy 20$,30$,80$,160$ package First"})
+            if(!(exists.packageBought.includes('20') && exists.packageBought.includes('30') && exists.packageBought.includes('80')&& exists.packageBought.includes('160'))) return res.status(400).json({message:"Please Buy 20$,30$,80$,$160 package First"})        
+        }
+        if(packageType=='640'){
+            if(!(exists.packageBought.includes('20') && exists.packageBought.includes('30') && exists.packageBought.includes('80')&& exists.packageBought.includes('160') && exists.packageBought.includes('320'))) return res.status(400).json({message:"Please Buy 20$,30$,80$,$160,$320 package First"})        
         }
         if(packageType=='1280'){
-            if(!(exists.packageBought.includes('20','30','80','160','320'))) return res.status(400).json({message:"Please Buy 20$,30$,80$,160$,320$ package First"})
-        }
-        if(packageType=='1280'){
-            if(!(exists.packageBought.includes('20','30','80','160','320','640'))) return res.status(400).json({message:"Please Buy 20$,30$,80$,160$,320$,640$ package First"})
+            if(!(exists.packageBought.includes('20') && exists.packageBought.includes('30') && exists.packageBought.includes('80')&& exists.packageBought.includes('160') && exists.packageBought.includes('320') && exists.packageBought.includes('640'))) return res.status(400).json({message:"Please Buy 20$,30$,80$,$160,$320,$640 package First"})        
         }
         if(packageType=='2560'){
-            if(!(exists.packageBought.includes('20','30','80','160','320','640','1280'))) return res.status(400).json({message:"Please Buy 20$,30$,80$,160$,320$,640$,1280$ package First"})
+            if(!(exists.packageBought.includes('20') && exists.packageBought.includes('30') && exists.packageBought.includes('80')&& exists.packageBought.includes('160') && exists.packageBought.includes('320') && exists.packageBought.includes('640')&& exists.packageBought.includes('1280'))) return res.status(400).json({message:"Please Buy 20$,30$,80$,$160,$320,$640,$1280 package First"})        
         }
         if(packageType=='5120'){
-            if(!(exists.packageBought.includes('20','30','80','160','320','640','1280','2560'))) return res.status(400).json({message:"Please Buy 20$,30$,80$,160$,320$,640$,1280$,2560$ package First"})
+            if(!(exists.packageBought.includes('20') && exists.packageBought.includes('30') && exists.packageBought.includes('80')&& exists.packageBought.includes('160') && exists.packageBought.includes('320') && exists.packageBought.includes('640')&& exists.packageBought.includes('1280')&&  exists.packageBought.includes('2560'))) return res.status(400).json({message:"Please Buy 20$,30$,80$,$160,$320,$640,$1280,$2560 package First"})        
         }
         if(packageType=='10240'){
-            if(!(exists.packageBought.includes('20','30','80','160','320','640','1280','2560','5120'))) return res.status(400).json({message:"Please Buy 20$,30$,80$,160$,320$,640$,1280$,2560$,5120$ package First"})
+            if(!(exists.packageBought.includes('20') && exists.packageBought.includes('30') && exists.packageBought.includes('80')&& exists.packageBought.includes('160') && exists.packageBought.includes('320') && exists.packageBought.includes('640')&& exists.packageBought.includes('1280')&&  exists.packageBought.includes('2560') &&  exists.packageBought.includes('5120'))) return res.status(400).json({message:"Please Buy 20$,30$,80$,$160,$320,$640,$1280,$2560,$5120 package First"})        
         }
         //==================================================//
         // check if user is present in our systwm or not 
         
         let  refferAddressOfUser=exists.referBy;
         //==================================================//
-        let packageAddress=await getAddress(address,packageType);
+        let packageAddress=await getAddress(packageType,address);
         console.log("packageAddress",packageAddress);
         if(!packageAddress) packageAddress=process.env.admin_address;
         
