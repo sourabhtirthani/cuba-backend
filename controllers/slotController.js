@@ -17,35 +17,35 @@ export const buySlot=async(req,res)=>{
 
         if(slotType==20){
             if(!(exists.packageBought.includes('20') && exists.packageBought.includes('30') && exists.packageBought.includes('80'))){
-                return res.status(400).json({message:"You can not buy this slot you have to buy 20,30,80 BUSD packages "});
+                return res.status(400).json({message:"You can not buy this slot you have to buy 20,30,80 USDT packages "});
             }
         }else if(slotType==50){
             if(!(exists.packageBought.includes('160'))){
-                return res.status(400).json({message:"You can not buy this slot you have to buy 160 BUSD packages "});
+                return res.status(400).json({message:"You can not buy this slot you have to buy 160 USDT packages "});
             }
         }else if(slotType==100){
             if(!(exists.packageBought.includes('320'))){
-                return res.status(400).json({message:"You can not buy this slot you have to buy 320 BUSD packages "});
+                return res.status(400).json({message:"You can not buy this slot you have to buy 320 USDT packages "});
             }
         }else if(slotType==200){
             if(!(exists.packageBought.includes('640'))){
-                return res.status(400).json({message:"You can not buy this slot you have to buy 640 BUSD packages "});
+                return res.status(400).json({message:"You can not buy this slot you have to buy 640 USDT packages "});
             }
         }else if(slotType==500){
             if(!(exists.packageBought.includes('1280'))){
-                return res.status(400).json({message:"You can not buy this slot you have to buy 1280 BUSD packages "});
+                return res.status(400).json({message:"You can not buy this slot you have to buy 1280 USDT packages "});
             }
         }else if(slotType==800){
             if(!(exists.packageBought.includes('2560'))){
-                return res.status(400).json({message:"You can not buy this slot you have to buy 2560 BUSD packages "});
+                return res.status(400).json({message:"You can not buy this slot you have to buy 2560 USDT packages "});
             }
         }else if(slotType==1000){
             if(!(exists.packageBought.includes('5120'))){
-                return res.status(400).json({message:"You can not buy this slot you have to buy 5120 BUSD packages "});
+                return res.status(400).json({message:"You can not buy this slot you have to buy 5120 USDT packages "});
             }
         }else if(slotType==1500){
             if(!(exists.packageBought.includes('10240'))){
-                return res.status(400).json({message:"You can not buy this slot you have to buy 10240 BUSD packages "});
+                return res.status(400).json({message:"You can not buy this slot you have to buy 10240 USDT packages "});
             }
         }else {
             return res.status(400).json({message:"Invalid Slot"});
@@ -82,7 +82,7 @@ export const buySlot=async(req,res)=>{
 
         // await activities.create({
         //     userId ,               // creates teh activity 
-        //     activiy : `ID ${userId} +${slotType}BUSD`,
+        //     activiy : `ID ${userId} +${slotType}USDT`,
         //     transactionHash 
         // });
 
@@ -161,7 +161,7 @@ export const updateSlot=async(req,res)=>{
         }
         await activities.create({
             userId ,               // creates teh activity 
-            activiy : `ID ${userId} +${amount}BUSD`,
+            activiy : `ID ${userId} +${amount}USDT`,
             transactionHash 
         });
         await users.findOneAndUpdate(
@@ -177,7 +177,7 @@ export const updateSlot=async(req,res)=>{
         });
         await boughtSlot.save();
 
-        return res.status(200).json({"message":`User Bought ${amount} BUSD Package successFully`})
+        return res.status(200).json({"message":`User Bought ${amount} USDT Package successFully`})
     }catch(error){
         console.log(`there is error in data updating ${error}`)
     }

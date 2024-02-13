@@ -105,7 +105,7 @@ export const updateDataForPackage=async(req,res)=>{
         })
         await activities.create({
             userId ,               // creates teh activity 
-            activiy : `ID ${userId} +${amount}BUSD`,
+            activiy : `ID ${userId} +${amount}USDT`,
             transactionHash 
         });
         await users.findOneAndUpdate(
@@ -120,7 +120,7 @@ export const updateDataForPackage=async(req,res)=>{
             package:amount.toString()
         });
         await boughtPackage.save();
-        return res.status(200).json({"message":`User Bought ${amount} BUSD Package successFully`})
+        return res.status(200).json({"message":`User Bought ${amount} USDT Package successFully`})
     }catch(error){
         console.log(`there is error in data updating ${error}`)
     }
