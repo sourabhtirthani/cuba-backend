@@ -473,3 +473,28 @@ export const showAnnouncement = async(req, res)=>{
 
 // }
 
+export const fetchUserData  = async(req, res)=>{
+    try{
+        const {address , userId} = req.body;
+        let exists;
+        if(!address && !userId){
+            return res.status(400).json({message : "No userID or address provided"});
+        }
+        if(!address){
+            // console.log("no address")
+            exists = await users.findOne({userId : userId});
+        }
+        if(!userId){
+            // console.log("no userid")
+            exists = await users.findOne({address : address})
+        }
+
+        if(!exists){
+            return res.status(500).json({message : "No user found"});
+        }
+
+        return res.status(200).json({user : exists});
+    }catch(error){
+        return res.status(500).josn({error : "Internal server error "})
+    }
+}

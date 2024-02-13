@@ -1,7 +1,7 @@
 import express from 'express';
 import errorHandler from '../middlewares/errorHandler.js';
 import { upload } from '../middlewares/multer.js';
-import { checkUser, createProfile, fetchAllUsers, fetchIncomeTransaction, fetchMyReferral, fetchTeamUsers, getProfile, showAnnouncement, updateData, updateProfile } from '../controllers/userController.js';
+import { checkUser, createProfile, fetchAllUsers, fetchIncomeTransaction, fetchMyReferral, fetchTeamUsers, fetchUserData, getProfile, showAnnouncement, updateData, updateProfile } from '../controllers/userController.js';
 import { buyPackage,fetchPackage, updateDataForPackage } from '../controllers/packageController.js';
 import { buySlot, fetchslot, updateSlot } from '../controllers/slotController.js';
 import { transactions } from '../controllers/fetchTransactions.js';
@@ -12,7 +12,7 @@ router.patch('/update' ,[upload.fields([{ name: 'profilePicture', maxCount: 1 }]
 router.get('/userdetails/:address' , errorHandler , getProfile)
 router.patch('/updateData',errorHandler,updateData)
 router.get('/checkUser/:address',errorHandler,checkUser)
-
+router.post('/userdata' , fetchUserData);
 // package Router 
 router.post('/buyPackage',errorHandler,buyPackage);
 router.post('/fetchPackages',errorHandler,fetchPackage);
