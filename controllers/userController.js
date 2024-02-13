@@ -53,9 +53,19 @@ export const createProfile = async (req, res)=>{
 }
 
 export const fetchTeamUsers=async(req,res)=>{
-    const {address}=req.body;
+    const {address}=req.params;
     const isExits= await users.findOne({address});
-    if(!isExits) return res.status(400).josn({messgae:"User Not Found"});
+    if(!isExits) return res.status(400).json({messgae:"User Not Found"});
+    let downline = await traverseTreeForDownline(address , 0);
+    console.log(downline);
+    const nonLevel0Users = downline.filter(user => user.level !== 0);
+    // return res.status(200).json({downline});
+    const usersDetails = await Promise.all(nonLevel0Users.map(async user => {
+        const userDetails = await users.findOne({ address: user.address });
+        return { user: userDetails, level: user.level };
+    }));
+
+    return res.status(200).json({ usersDetails });
 
 }
 
@@ -232,35 +242,61 @@ export const getProfile = async(req, res)=>{
 }
 
 
-const traverseTreeForDownline=async(address,currentLevel=1)=>{
-    console.log("address",address)
-    const userData = await users.findOne({address});
-    let addressforTree;
-    let levels = {};
-    let userDatawithLevel={};
-    if(userData){
-        if(userData.leftAddress) { 
-            levels.level=currentLevel;
-            userDatawithLevel = { ...userData, ...levels };
-            addressforTree.push(userDatawithLevel)
-    }
-    if(userData.rightAddress) {
-        levels.level=currentLevel;
-            userDatawithLevel = { ...userData, ...levels };
-            addressforTree.push(userDatawithLevel);
+// const traverseTreeForDownline=async(address,currentLevel=1)=>{
+//     console.log("address",address)
+//     const userData = await users.findOne({address});
+//     let addressforTree;
+//     let levels = {};
+//     let userDatawithLevel={};
+//     if(userData){
+//         if(userData.leftAddress) { 
+//             levels.level=currentLevel;
+//             userDatawithLevel = { ...userData, ...levels };
+//             addressforTree.push(userDatawithLevel)
+//     }
+//     if(userData.rightAddress) {
+//         levels.level=currentLevel;
+//             userDatawithLevel = { ...userData, ...levels };
+//             addressforTree.push(userDatawithLevel);
+//     }
+
+//     if(userData.leftAddress) {
+//     addressforTree=await traverseTreeForDownline(userData.leftAddress)
+//        return addressforTree;
+//     };
+//     if(userData.rightAddress) {
+//         addressforTree= await  traverseTreeForDownline(userData.rightAddress);
+//         return addressforTree;
+//     }
+//     }else return addressforTree;
+    
+// }
+
+const traverseTreeForDownline = async (address, currentLevel = 0) => {
+   
+    const user = await users.findOne({ address });
+
+  
+    if (!user) return [];
+
+    
+    const result = [{ address, level: currentLevel }];
+
+    
+    if (user.leftAddress) {
+        console.log('in here')
+        const leftChildren = await traverseTreeForDownline(user.leftAddress, currentLevel + 1);
+        result.push(...leftChildren.map(child => ({ ...child, level: currentLevel + 1 })));
     }
 
-    if(userData.leftAddress) {
-    addressforTree=await traverseTreeForDownline(userData.leftAddress)
-       return addressforTree;
-    };
-    if(userData.rightAddress) {
-        addressforTree= await  traverseTreeForDownline(userData.rightAddress);
-        return addressforTree;
+    if (user.rightAddress) {
+        console.log("in rigth")
+        const rightChildren = await traverseTreeForDownline(user.rightAddress, currentLevel + 1);
+        result.push(...rightChildren.map(child => ({ ...child, level: currentLevel + 1 })));
     }
-    }else return addressforTree;
-    
-}
+
+    return result;
+};
 
 const traverseTree = async (address) => {
     console.log("address", address);

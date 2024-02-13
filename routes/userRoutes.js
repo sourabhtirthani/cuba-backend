@@ -28,7 +28,7 @@ router.patch('/updateSlotdata',updateSlot);
 // router.get('/allusers/:startDate?/:endData?' , fetchAllUsers)
 router.get('/allUsers' , fetchAllUsers)      // Note : This route is using query of start and end date
 
-router.get('/fetchTeamMember',fetchTeamUsers);
+router.get('/fetchTeamMember/:address',fetchTeamUsers);
 // router.get('/referrals/:address/:startDate?/:endDate?' , fetchMyReferral)
 router.get('/referrals/:address' , fetchMyReferral)  // Note : This route is using query of start and end date
 
