@@ -2,6 +2,7 @@ import users from "../models/users.js";
 import { getAddress } from "../helperss/getPackageAddress.js";
 import activities from "../models/activity.js";
 import packages from "../models/package.js";
+import incomeTransactions from "../models/incomeTransactions.js";
 // import getAddress from '../helpers/getPackageAddress.js'
 
 
@@ -9,7 +10,8 @@ import packages from "../models/package.js";
 export const buyPackage=async(req,res)=>{
     try{
         const {userId , address, packageType } = req.body;
-        let Packages=['20','30','80','160','320','640','1280','2560','5120','10240'];
+        let packgesToBuy =[20,30,80,160,320,640,1280,2560,5120,10240];
+        if(!(packgesToBuy.includes(packageType))) return res.status(400).json({messgae:"Invalid Package"});
         // Check all the values coming from req.body
         if(!userId) return res.status(400).json({message:"Invalid userId.userId must contain some value"});
         if(!address) return res.status(400).json({message:"Invalid address.address must contain some value"});
@@ -82,7 +84,25 @@ export const updateDataForPackage=async(req,res)=>{
         }
 
         await users.updateOne({address:refferAddress},{$set:{ refferalIncome:((existsRefferAddress.refferalIncome)+(amount/2))}})
-        await users.updateOne({address:packageAddress},{$set:{ packageIncome:((existsPackageAddress.refferalIncome)+(amount/2))}})
+        await users.updateOne({address:packageAddress},{$set:{ packageIncome:((existsPackageAddress.packageIncome)+(amount/2))}})
+        await incomeTransactions.create({
+            fromUserId:userId,
+            toUserId:existsRefferAddress.userId,
+            fromAddress:address,
+            toAddress:refferAddress,
+            incomeType:"Referral income",
+            amount:amount/2,
+            transactionHash
+        })
+        await incomeTransactions.create({
+            fromUserId:userId,
+            toUserId:existsPackageAddress.userId,
+            fromAddress:address,
+            toAddress:packageAddress,
+            incomeType:"Package income",
+            amount:amount/2,
+            transactionHash
+        })
         await activities.create({
             userId ,               // creates teh activity 
             activiy : `ID ${userId} +${amount}BUSD`,

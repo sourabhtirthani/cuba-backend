@@ -3,6 +3,7 @@ import slots from "../models/slots.js";
 import users from "../models/users.js";
 import slotTree from "../models/slotTracking.js";
 import incomeTransactions from '../models/incomeTransactions.js'
+
 export const buySlot=async(req,res)=>{
     try{
         const {userId , address, slotType } = req.body;
@@ -57,7 +58,7 @@ export const buySlot=async(req,res)=>{
           console.log("result",result);
           if(result){
             const lastEntry = await slotTree
-            .find({ slottype: 20 })
+            .find({ slottype: slotType })
             .sort({ timestamp: -1 }) // Assuming you have a field called 'timestamp'
             .limit(1)
 
@@ -85,8 +86,8 @@ export const buySlot=async(req,res)=>{
         //     transactionHash 
         // });
 
-        return res.status(200).json({message : "Data Validate SuccessFully",data:{"refferAddress":exists.referBy,"uplinAddress":uplinAddress,"amount":Number(slotType)}})
-
+         return res.status(200).json({message : "Data Validate SuccessFully",data:{"refferAddress":exists.referBy,"uplinAddress":uplinAddress,"amount":Number(slotType)}})
+        
     }catch (error){
         console.log("error",error.message)
         return res.status(400).json({message:error.message})
@@ -131,12 +132,32 @@ export const updateSlot=async(req,res)=>{
         if(!existsRefferAddress){
             return res.status(200).json({message : "Reffer Address Not Exits"})
         }
+        insertAddressBFS(process.env.admin_address,address,amount)
         
         await users.updateOne({address:refferAddress},{$set:{ refferalIncome:((existsRefferAddress.refferalIncome)+(amount/4))}})
+        await incomeTransactions.create({
+            fromUserId:userId,
+            toUserId:existsRefferAddress.userId,
+            fromAddress:address,
+            toAddress:refferAddress,
+            incomeType:"Referral income",
+            amount:amount/4,
+            transactionHash
+        })
+
         let uplineAddressesData;
         for(let i in uplineAddress){
             uplineAddressesData=await users.findOne({address:uplineAddress[i]})
             await users.updateOne({"address":uplineAddress[i]},{$set:{"slotIncome":(uplineAddressesData.levelIncome+(amount/4))}});
+            await incomeTransactions.create({
+                fromUserId:userId,
+                toUserId:uplineAddressesData.userId,
+                fromAddress:address,
+                toAddress:uplineAddress[i],
+                incomeType:"Slot income",
+                amount:amount/4,
+                transactionHash
+            })
         }
         await activities.create({
             userId ,               // creates teh activity 
@@ -200,6 +221,70 @@ const FindUpline=async(address)=>{
 
 
 
-const  addMember=async()=>{
+async function insertAddressBFS(adminAddress, newAddress,slotType) {
+    // Find the admin node
+    console.log(adminAddress, newAddress,slotType);
+    const adminNode = await slotTree.findOne({ address: adminAddress,slotType:slotType });
+    console.log("adminNode",adminNode);
+    if (!adminNode) {
+        console.error('Admin node not found!');
+        return;
+    }
 
+    // Create the new node
+    let newNode = new slotTree({ address: newAddress,slotType:slotType });
+
+    // Check if the left child of the admin node is empty
+    if (!adminNode.leftAddress) {
+        adminNode.leftAddress = newAddress;
+        await adminNode.save();
+         newNode = new slotTree({ address: newAddress,slotType:slotType,parantAddress: adminNode.address});
+         await newNode.save();
+        return; // Node inserted as the left child of the admin node
+    }
+
+    // Check if the right child of the admin node is empty
+    if (!adminNode.rightAddress) {
+        adminNode.rightAddress = newAddress;
+        await adminNode.save();
+        newNode = new slotTree({ address: newAddress,slotType:slotType,parantAddress: adminNode.address});
+         await newNode.save();
+        return; // Node inserted as the right child of the admin node
+    }
+
+    // If both children of the admin node are occupied, use BFS to find an available position
+    const queue = [adminNode];
+    while (queue.length > 0) {
+        const currentNode = queue.shift();
+        
+        // Check if the left child of the current node is empty
+        if (!currentNode.leftAddress) {
+            currentNode.leftAddress = newAddress;
+            await currentNode.save();
+            newNode = new slotTree({ address: newAddress,slotType:slotType,parantAddress: currentNode.address});
+            await newNode.save();
+            return; // Node inserted as the left child of the current node
+        }
+
+        // Check if the right child of the current node is empty
+        if (!currentNode.rightAddress) {
+            currentNode.rightAddress = newAddress;
+            await currentNode.save();
+            newNode = new slotTree({ address: newAddress,slotType:slotType,parantAddress: currentNode.address});
+            await newNode.save();
+            return; // Node inserted as the right child of the current node
+        }
+
+        // Enqueue the left and right children for further exploration
+        if (currentNode.leftAddress) {
+            const leftChild = await slotTree.findOne({ address: currentNode.leftAddress,slotType:slotType });
+            queue.push(leftChild);
+        }
+        if (currentNode.rightAddress) {
+            const rightChild = await slotTree.findOne({ address: currentNode.rightAddress,slotType:slotType });
+            queue.push(rightChild);
+        }
+    }
+
+    console.error('No available space to insert the new node!');
 }

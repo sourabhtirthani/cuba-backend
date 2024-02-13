@@ -18,6 +18,9 @@ const incomeSchema = new Schema({
     },
     amount : {
         type : Number
+    },
+    transactionHash:{
+        type:String
     }
 }, {timestamps : true})
 

@@ -4,6 +4,7 @@ import { upload } from '../middlewares/multer.js';
 import { checkUser, createProfile, fetchAllUsers, fetchIncomeTransaction, fetchMyReferral, fetchTeamUsers, getProfile, showAnnouncement, updateData, updateProfile } from '../controllers/userController.js';
 import { buyPackage,fetchPackage, updateDataForPackage } from '../controllers/packageController.js';
 import { buySlot, fetchslot, updateSlot } from '../controllers/slotController.js';
+import { transactions } from '../controllers/fetchTransactions.js';
 const router = express.Router();
 
 router.post('/create' , [upload.fields([{ name: 'profilePicture', maxCount: 1 }]),errorHandler] , createProfile);
@@ -34,7 +35,7 @@ router.get('/referrals/:address' , fetchMyReferral)  // Note : This route is usi
 
 //income routes
 router.get('/transactions/:address' , fetchIncomeTransaction);
-
+router.get('/fetchTransactionsFromContract',transactions)
 
 //announcements
 router.get('/announcements' , showAnnouncement);

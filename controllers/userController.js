@@ -6,9 +6,8 @@ import dotenv from 'dotenv'
 dotenv.config();
 export const createProfile = async (req, res)=>{
     try{
-        const {address , referBy, email , name, mobileNumber} = req.body;
+        const {address , referBy} = req.body;
         // console.log(`addres is : ${address} , ,, referby : ${referBy} , transaction has his : ${transactionHash}`)
-        const profilePicture =  req.files?.profilePicture ? req.files.profilePicture[0].filename : undefined;
         if(!address  || !referBy){
             return res.status(400).json({message : "Please provide all the details"});
         }
@@ -17,47 +16,47 @@ export const createProfile = async (req, res)=>{
         if(!isReferExits){
             return res.status(400).json({message : "Reffer Address Not found"})
         }
-        console.log("exists");
         if(exists){
-            return res.status(200).json({message : "User already exists" , userId : exists})
+            return res.status(200).json({message : "User already exists"})
         }
-        console.log("referBy",referBy);
         let sendHalfAmountForReffal=referBy;
-
         let treeResult =await traverseTree(referBy);
         console.log("treeResult",treeResult);
+        if(!treeResult){
+            return res.status(400).json({message : "No tree result"})
+        }
+        const newUser = await users.create({
+            address,
+            referBy : referBy,
+            parentAddress:treeResult.parentAddress,
+        });
         if(treeResult.position=="LEFT"){
             await users.updateOne({address:treeResult.parentAddress},{$set:{ leftAddress:address}})
         }else{
             await users.updateOne({address:treeResult.parentAddress},{$set:{ rightAddress:address}})
         }
-        
-        const totalUsers = await users.find({}).limit(1).sort({createdAt:-1});   //finds the total number of documents 
-        if(!totalUsers) return res.status(500).json({error:"Internel Server Error"});        
-        const newUserId = Number(totalUsers[0].userId) + 1; 
-        const newUser = await users.create({
-            address,
-            email,
-            name,
-            referBy,
-            parentAddress:treeResult.parentAddress,
-            profilePicture,
-            userId : newUserId,
-            mobileNumber
-        });
-        await newUser.save();
-        
-        await users.findOneAndUpdate(
-            { address: referBy },
-            { $push: { referTo: address } },        //updates the referto array and adds the new user that he referred to his array
-            { new: true }
-            );
-            let {uplineAddresses,currentLevel}=await getUplineAddresses(address);
-            return res.status(200).json({message : "All Good!",data:{"refferAddress":sendHalfAmountForReffal,"uplineAddress":uplineAddresses}})
+        let {uplineAddresses,currentLevel}=await getUplineAddresses(address);
+
+        const result = await users.findOneAndDelete({ address });
+        if(treeResult.position=="LEFT"){
+            await users.updateOne({address:treeResult.parentAddress},{$set:{ leftAddress:""}})
+        }else{
+            await users.updateOne({address:treeResult.parentAddress},{$set:{ rightAddress:""}})
+        }
+
+        return res.status(200).json({message : "All Good!",data:{"refferAddress":sendHalfAmountForReffal,"uplineAddress":uplineAddresses}})
+    
     }catch(error){
         console.log(`error in create profile : ${error}`);
         return res.status(500).json({error : "Internal Server error"})
     }
+}
+
+export const fetchTeamUsers=async(req,res)=>{
+    const {address}=req.body;
+    const isExits= await users.findOne({address});
+    if(!isExits) return res.status(400).josn({messgae:"User Not Found"});
+
 }
 
 export const checkUser=async(req,res)=>{
@@ -81,30 +80,90 @@ export const checkUser=async(req,res)=>{
 export const updateData=async(req,res)=>{
     try{
         const {address , referBy, transactionHash ,uplineAddresses,amount,levelDistribution,adminIncome} = req.body;
-        const exists = await users.findOne({address});
         const existsRefer = await users.findOne({address:referBy});
         
-        if(!exists){
-            return res.status(200).json({message : "User Not Exits"})
-        }
+        // if(!exists){
+        //     return res.status(200).json({message : "User Not Exits"})
+        // }
         if(!existsRefer){
             return res.status(200).json({message : "Refer Address Not Exits"})
         }
+        // const exists = await users.findOne({address});
+        const totalUsers = await users.find({}).limit(1).sort({createdAt:-1});   //finds the total number of documents 
+        if(!totalUsers) return res.status(500).json({error:"Internel Server Error"});        
+        const userId = Number(totalUsers[0].userId) + 1; 
+
+        let treeResult =await traverseTree(referBy);
+        const newUser = await users.create({
+            address,
+            referBy : referBy,
+            parentAddress:treeResult.parentAddress,
+            userId ,
+            isActive:true
+        });
+        await newUser.save();
+        if(!treeResult){
+            return res.status(400).json({message : "No tree result"})
+        }
+        if(treeResult.position=="LEFT"){
+            await users.updateOne({address:treeResult.parentAddress},{$set:{ leftAddress:address}})
+        }else{
+            await users.updateOne({address:treeResult.parentAddress},{$set:{ rightAddress:address}})
+        }
+
+        await users.findOneAndUpdate(
+            { address: referBy },
+            { $push: { referTo: address } },        //updates the referto array and adds the new user that he referred to his array
+            { new: true }
+            );
+
         await users.updateOne({address:referBy},{$set:{ refferalIncome:((existsRefer.refferalIncome)+(amount/2))}})
-        await users.updateOne({address:process.env.admin_address},{$set:{ "levelIncome":adminIncome}})
+
+        await incomeTransactions.create({
+            fromUserId:userId,
+            toUserId:existsRefer.userId,
+            fromAddress:address,
+            toAddress:referBy,
+            incomeType:"Referral income",
+            amount:amount/2,
+            transactionHash:transactionHash
+        })
         const updateDataForUser={
             transactionHash,
             isActive:true
+        
         }
         await users.updateOne({address},{$set:updateDataForUser});
+        const existsAdmin = await users.findOne({address:process.env.admin_address});
+
+        await incomeTransactions.create({
+            fromUserId: userId,
+            toUserId:existsAdmin.userId,
+            fromAddress:address,
+            toAddress:process.env.admin_address,
+            incomeType:"Level income",
+            amount:adminIncome,
+            transactionHash:transactionHash
+        })
+        await users.updateOne({"address":process.env.admin_address},{$set:{"levelIncome":(existsAdmin.levelIncome+adminIncome)}});
+
         let uplineAddressesData;
         for(let i in uplineAddresses){
             uplineAddressesData=await users.findOne({address:uplineAddresses[i]})
+            await incomeTransactions.create({
+                fromUserId:userId,
+                toUserId:uplineAddressesData.userId,
+                fromAddress:address,
+                toAddress:uplineAddresses[i],
+                incomeType:"Level income",
+                amount:levelDistribution[i],
+                transactionHash:transactionHash
+            })
             await users.updateOne({"address":uplineAddresses[i]},{$set:{"levelIncome":(uplineAddressesData.levelIncome+levelDistribution[i])}});
         }
 
         await activities.create({
-            userId : exists.userId,            // creates teh activity 
+            userId : userId,            // creates teh activity 
             activiy : "New user joined",
             transactionHash : transactionHash,
         });
@@ -112,12 +171,13 @@ export const updateData=async(req,res)=>{
         return res.status(200).json({"message":"User Joined successFully"})
     }catch(error){
         console.log(`there is error in data updating ${error}`)
+        return res.status(500).json({error : "Internal server error"})
     }
 }
 
 export const updateProfile = async(req, res)=>{
     try{
-        const { address, transactionHash, email, name, mobileNumber } = req.body;
+        const { address, email, name, mobileNumber } = req.body;
         
         if (!address) {
             return res.status(400).json({ message: "Please provide address and transactionHash" });
@@ -172,36 +232,116 @@ export const getProfile = async(req, res)=>{
 }
 
 
-const traverseTree=async(address)=>{
+const traverseTreeForDownline=async(address,currentLevel=1)=>{
     console.log("address",address)
     const userData = await users.findOne({address});
     let addressforTree;
+    let levels = {};
+    let userDatawithLevel={};
     if(userData){
-        if(!userData.leftAddress) { 
-            addressforTree={"parentAddress":address,"position":"LEFT"}
-            return addressforTree;
+        if(userData.leftAddress) { 
+            levels.level=currentLevel;
+            userDatawithLevel = { ...userData, ...levels };
+            addressforTree.push(userDatawithLevel)
     }
-    if(!userData.rightAddress) {
-        addressforTree={"parentAddress":address,"position":"RIGHT"}
-            return addressforTree;
+    if(userData.rightAddress) {
+        levels.level=currentLevel;
+            userDatawithLevel = { ...userData, ...levels };
+            addressforTree.push(userDatawithLevel);
     }
 
     if(userData.leftAddress) {
-    addressforTree=await traverseTree(userData.leftAddress)
+    addressforTree=await traverseTreeForDownline(userData.leftAddress)
        return addressforTree;
     };
     if(userData.rightAddress) {
-        addressforTree= await  traverseTree(userData.rightAddress);
+        addressforTree= await  traverseTreeForDownline(userData.rightAddress);
         return addressforTree;
     }
     }else return addressforTree;
     
 }
 
+const traverseTree = async (address) => {
+    console.log("address", address);
+    const userData = await users.findOne({ address });
+
+    if (!userData) {
+        console.log("User not found");
+        return null;
+    }
+
+    console.log("Checking address", address);
+
+    if (!userData.leftAddress) {
+        console.log("Found available space at left of", address);
+        return { "parentAddress": address, "position": "LEFT" };
+    }
+
+    if (!userData.rightAddress) {
+        console.log("Found available space at right of", address);
+        return { "parentAddress": address, "position": "RIGHT" };
+    }
+
+    // Check level 1
+    console.log("Checking level 1 bottom from left to right");
+    let currentLevel = [userData.leftAddress, userData.rightAddress];
+    let nextLevel = [];
+
+    for (const childAddress of currentLevel) {
+        const childData = await users.findOne({ address: childAddress });
+
+        // Check if there's space in the child subtree
+        if (!childData.leftAddress || !childData.rightAddress) {
+            console.log("Found available space in the child subtree of", childAddress);
+            return await traverseTree(childAddress);
+        }
+
+        // Add children of the current node to the next level
+        if (childData.leftAddress) {
+            nextLevel.push(childData.leftAddress);
+        }
+        if (childData.rightAddress) {
+            nextLevel.push(childData.rightAddress);
+        }
+    }
+
+    // Move to the next level if no space is found in level 1
+    while (nextLevel.length > 0) {
+        currentLevel = nextLevel;
+        nextLevel = [];
+
+        console.log("Checking next level bottom from left to right");
+
+        for (const childAddress of currentLevel) {
+            const childData = await users.findOne({ address: childAddress });
+
+            // Check if there's space in the child subtree
+            if (!childData.leftAddress || !childData.rightAddress) {
+                console.log("Found available space in the child subtree of", childAddress);
+                return await traverseTree(childAddress);
+            }
+
+            // Add children of the current node to the next level
+            if (childData.leftAddress) {
+                nextLevel.push(childData.leftAddress);
+            }
+            if (childData.rightAddress) {
+                nextLevel.push(childData.rightAddress);
+            }
+        }
+    }
+
+    console.log("No available space found at any level");
+    return null;
+}
 
 // Function to traverse up the tree and retrieve upline addresses
 async function getUplineAddresses (address, uplineAddresses = [], currentLevel = 0, maxLevel = 11) {
+    console.log('address',address);
     const userData = await users.findOne({address});
+    console.log("userData",userData);
+    if(userData){
     if (!userData.parentAddress) {
         return {uplineAddresses,currentLevel};
     }
@@ -214,6 +354,7 @@ async function getUplineAddresses (address, uplineAddresses = [], currentLevel =
     }
     // Recursively traverse up to the parent node
     return getUplineAddresses(userData.parentAddress, uplineAddresses, currentLevel + 1, maxLevel);
+}else return  {uplineAddresses,currentLevel};
 }
 
 
@@ -232,39 +373,6 @@ export const fetchAllUsers = async(req, res)=>{
         }
 
         return res.status(200).json({allUsers});
-
-    }catch(error){
-        console.log(`error in fetch all users in controllers : ${error.message}`);
-        return res.status(500).json({error : "Internal server error"})
-    }
-}
-
-export const fetchTeamUsers = async(req, res)=>{
-    try{
-        const {startDate , endDate,address} = req.query;
-       
-        if ((startDate && isNaN(Date.parse(startDate))) || (endDate && isNaN(Date.parse(endDate)))) {
-            return res.status(400).json({ error: "Invalid date format" });  // YYYY-MM-DD
-        }
-
-        let userData=await users.findOne({address})
-        if(!userData) return res.status(400).json({message:"User Not Found"});
-
-        let teamUsers;
-        let allTeam=await getDownlineAddress(address,[]);
-        console.log("allteam",allTeam);
-        if(startDate && endDate){
-            teamUsers = await filterData(startDate , endDate);
-        }else{
-            if(!allTeam) return res.status(404).json({message:"Data Not Found"});
-            else 
-            {
-                for(let i in allTeam){
-                    teamUsers.push( await users.findOne({address:allTeam[i]}));
-                }
-            }
-        }
-        return res.status(200).json({data:teamUsers});
 
     }catch(error){
         console.log(`error in fetch all users in controllers : ${error.message}`);
@@ -359,20 +467,9 @@ export const showAnnouncement = async(req, res)=>{
     }
 }
 
-const getDownlineAddress=async(address,downlineAddresses)=>{
-    const userData=await users.findOne({address});
-    
-        console.log(`userData is found for ${address}`)
-        if(userData.leftAddress) {
-            console.log(`left address is found for ${address}====> ${userData.leftAddress}`)
-            downlineAddresses.push(userData.leftAddress);
-            return getDownlineAddress(userData.leftAddress,downlineAddresses);
-        }
-        console.log("downlineAddresses",downlineAddresses);
-        if(userData.rightAddress){
-            console.log(`right address is found for ${address}====> ${userData.rightAddress}`)
-            downlineAddresses.push(userData.rightAddress);
-            return getDownlineAddress(userData.rightAddress,downlineAddresses);
-        }
-    return downlineAddresses;
-}
+
+// export const deleteUser = async(req, res)=>{
+// //address deelte basis of address from user 
+
+// }
+

@@ -322,7 +322,7 @@ async function getUplineAddresses (address,  maxLevel,currentLevel = 1) {
     if(userData){
         let uplineAddresses;
         if (!userData.parentAddress) {
-            
+            uplineAddresses=process.env.admin_address;
             return uplineAddresses;
         }
         // Check if the maximum level is reached
