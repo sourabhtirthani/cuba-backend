@@ -56,7 +56,7 @@ export const fetchTeamUsers=async(req,res)=>{
     const {address}=req.params;
     const isExits= await users.findOne({address});
     if(!isExits) return res.status(400).json({messgae:"User Not Found"});
-    let downline = await traverseTreeForDownline(address , 0);
+    let downline = await traverseTreeForDownline(address , 0 , []);
     console.log(downline);
     const nonLevel0Users = downline.filter(user => user.level !== 0);
     // return res.status(200).json({downline});
@@ -272,29 +272,23 @@ export const getProfile = async(req, res)=>{
     
 // }
 
-const traverseTreeForDownline = async (address, currentLevel = 0) => {
-   
+const traverseTreeForDownline = async (address, currentLevel = 0, result = []) => {
     const user = await users.findOne({ address });
 
-  
-    if (!user) return [];
+    if (!user) return result;
 
-    
-    const result = [{ address, level: currentLevel }];
+    result.push({ address, level: currentLevel });
 
-    
     if (user.leftAddress) {
-        console.log('in here')
-        const leftChildren = await traverseTreeForDownline(user.leftAddress, currentLevel + 1);
-        result.push(...leftChildren.map(child => ({ ...child, level: currentLevel + 1 })));
+        console.log('in left: ' + user.leftAddress)
+        await traverseTreeForDownline(user.leftAddress, currentLevel + 1, result); 
     }
 
     if (user.rightAddress) {
-        console.log("in rigth")
-        const rightChildren = await traverseTreeForDownline(user.rightAddress, currentLevel + 1);
-        result.push(...rightChildren.map(child => ({ ...child, level: currentLevel + 1 })));
+        console.log('in right: ' + user.rightAddress)
+        await traverseTreeForDownline(user.rightAddress, currentLevel + 1, result); 
     }
-
+    
     return result;
 };
 
