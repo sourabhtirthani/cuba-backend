@@ -1,7 +1,7 @@
 import express from 'express';
 import errorHandler from '../middlewares/errorHandler.js';
 import { upload } from '../middlewares/multer.js';
-import { checkUser, createProfile, fetchAllUsers, fetchIncomeTransaction, fetchMyReferral, fetchTeamUsers, fetchUserData, getProfile, showAnnouncement, updateData, updateProfile } from '../controllers/userController.js';
+import { checkUser, createProfile, fetchAllUsers, fetchIncomeTransaction, fetchMyReferral, fetchTeamUsers, fetchUserData, fetchUserTodayIncome, getProfile, showAnnouncement, updateData, updateProfile } from '../controllers/userController.js';
 import { buyPackage,fetchPackage, updateDataForPackage } from '../controllers/packageController.js';
 import { buySlot, fetchslot, updateSlot } from '../controllers/slotController.js';
 import { transactions } from '../controllers/fetchTransactions.js';
@@ -39,6 +39,6 @@ router.get('/fetchTransactionsFromContract',transactions)
 
 //announcements
 router.get('/announcements' , showAnnouncement);
-
+router.get('/fetchTodayIncome/:address',fetchUserTodayIncome);
 
 export default router;

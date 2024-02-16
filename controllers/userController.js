@@ -102,7 +102,7 @@ export const updateData=async(req,res)=>{
         const totalUsers = await users.find({}).limit(1).sort({createdAt:-1});   //finds the total number of documents 
         if(!totalUsers) return res.status(500).json({error:"Internel Server Error"});        
         const userId = Number(totalUsers[0].userId) + 1; 
-
+        
         let treeResult =await traverseTree(referBy);
         const newUser = await users.create({
             address,
@@ -156,7 +156,7 @@ export const updateData=async(req,res)=>{
             transactionHash:transactionHash
         })
         await users.updateOne({"address":process.env.admin_address},{$set:{"levelIncome":(existsAdmin.levelIncome+adminIncome)}});
-
+        console.log("userId",userId);
         let uplineAddressesData;
         for(let i in uplineAddresses){
             uplineAddressesData=await users.findOne({address:uplineAddresses[i]})
@@ -180,6 +180,7 @@ export const updateData=async(req,res)=>{
 
         return res.status(200).json({"message":"User Joined successFully"})
     }catch(error){
+        console.error(error)
         console.log(`there is error in data updating ${error}`)
         return res.status(500).json({error : "Internal server error"})
     }
@@ -533,4 +534,29 @@ export const fetchUserData  = async(req, res)=>{
     }catch(error){
         return res.status(500).josn({error : "Internal server error "})
     }
+}
+
+export const fetchUserTodayIncome=async(req,res)=>{
+    const {address}= req.params;
+    const income=await incomeTransactions.aggregate([
+        {
+          $match: {
+            toAddress: `${address}`,
+            createdAt: {
+              $gte: new Date(new Date().setHours(0, 0, 0, 0)),
+              $lt: new Date(new Date().setHours(23, 59, 59, 999))
+            }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalAmount: {
+              $sum: "$amount"
+            }
+          }
+        }
+      ])
+      if(income[0].totalAmount) return res.status(200).json({message:"Amount Found",amount:income[0].totalAmount});
+      else return res.status(400).json({message:"Amount Not Found",amount:0});
 }

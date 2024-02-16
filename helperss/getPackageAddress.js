@@ -218,6 +218,7 @@ export const getAddress = async (packageType,address) => {
             upgradePackgeAddressData = await users.findOne({
                 upgradePackgeAddress
             })
+            
             if (!(upgradePackgeAddress && upgradePackgeAddressData.packageBought.includes(packageType))) {
                 upgradePackgeAddress = await getUplineAddresses(address, 8);
                 upgradePackgeAddressData = await users.findOne({
