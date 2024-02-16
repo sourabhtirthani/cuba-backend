@@ -5,6 +5,7 @@ import { checkUser, createProfile, fetchAllUsers, fetchIncomeTransaction, fetchM
 import { buyPackage,fetchPackage, updateDataForPackage } from '../controllers/packageController.js';
 import { buySlot, fetchslot, updateSlot } from '../controllers/slotController.js';
 import { transactions } from '../controllers/fetchTransactions.js';
+import { fetchPackageForuser, fetchSlotsForUser } from '../controllers/getpackageandslotcontroller.js';
 const router = express.Router();
 
 router.post('/create' , [upload.fields([{ name: 'profilePicture', maxCount: 1 }]),errorHandler] , createProfile);
@@ -39,6 +40,9 @@ router.get('/fetchTransactionsFromContract',transactions)
 
 //announcements
 router.get('/announcements' , showAnnouncement);
+
+router.get('/packageofuser/:address' , fetchPackageForuser)
+router.get('/slotsofuser/:userId' , fetchSlotsForUser);
 router.get('/fetchTodayIncome/:address',fetchUserTodayIncome);
 
 export default router;
