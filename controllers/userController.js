@@ -551,6 +551,8 @@ export const fetchUserTodayIncome=async(req,res)=>{
           }
         }
       ])
-      if(income[0].totalAmount) return res.status(200).json({message:"Amount Found",amount:income[0].totalAmount});
+      
+      console.log(income)
+      if(income.length >0 && income[0].totalAmount) return res.status(200).json({message:"Amount Found",amount:income[0].totalAmount});
       else return res.status(400).json({message:"Amount Not Found",amount:0});
 }
