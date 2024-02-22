@@ -288,3 +288,180 @@ async function insertAddressBFS(adminAddress, newAddress,slotType) {
 
     console.error('No available space to insert the new node!');
 }
+
+
+
+// async function insertAddressBFS(adminAddress, newAddress, slotType) {
+//     // Find the admin node
+//     const adminNode = await slotTree.findOne({ address: adminAddress, slotType: slotType });
+//     if (!adminNode) {
+//         console.error('Admin node not found!');
+//         return;
+//     }
+
+//     // Check if the admin node's team has reached its maximum size
+//     if (adminNode.myTeam.length >= 14) {
+//         // If so, create a new node with the same parent as the admin node
+//         const parentNode = await slotTree.findOne({ address: adminNode.parentAddress, slotType: slotType });
+//         if (!parentNode) {
+//             console.error('Parent node not found!');
+//             return;
+//         }
+
+//         // Create a new node with the filled myTeam array
+//         let newNode = new slotTree({ address: adminAddress, slotType: slotType, parentAddress: parentNode.address, myTeam: adminNode.myTeam });
+//         await newNode.save();
+
+//         // Clear the myTeam array of the admin node
+//         adminNode.myTeam = [];
+//         await adminNode.save();
+
+//         // Update the parent node's child reference
+//         if (parentNode.leftAddress === adminAddress) {
+//             parentNode.leftAddress = newNode.address;
+//         } else if (parentNode.rightAddress === adminAddress) {
+//             parentNode.rightAddress = newNode.address;
+//         }
+//         await parentNode.save();
+
+//         // Recur for the new node
+//         return insertAddressBFS(newNode.address, newAddress, slotType);
+//     }
+
+//     // If the admin node's team still has space for a new child
+//     // Proceed with the regular insertion logic
+//     adminNode.myTeam.push(newAddress);
+//     await adminNode.save();
+
+//     // Check if the left child of the admin node is empty
+//     if (!adminNode.leftAddress) {
+//         adminNode.leftAddress = newAddress;
+//         await adminNode.save();
+//         return;
+//     }
+
+//     // Check if the right child of the admin node is empty
+//     if (!adminNode.rightAddress) {
+//         adminNode.rightAddress = newAddress;
+//         await adminNode.save();
+//         return;
+//     }
+
+//     // If both children of the admin node are occupied, find an available position using BFS
+//     const queue = [adminNode];
+//     while (queue.length > 0) {
+//         const currentNode = queue.shift();
+
+//         if (!currentNode.leftAddress) {
+//             currentNode.leftAddress = newAddress;
+//             await currentNode.save();
+//             return;
+//         }
+
+//         if (!currentNode.rightAddress) {
+//             currentNode.rightAddress = newAddress;
+//             await currentNode.save();
+//             return;
+//         }
+
+//         if (currentNode.leftAddress) {
+//             const leftChild = await slotTree.findOne({ address: currentNode.leftAddress, slotType: slotType });
+//             queue.push(leftChild);
+//         }
+//         if (currentNode.rightAddress) {
+//             const rightChild = await slotTree.findOne({ address: currentNode.rightAddress, slotType: slotType });
+//             queue.push(rightChild);
+//         }
+//     }
+
+//     console.error('No available space to insert the new node!');
+// }
+
+
+// async function insertAddressBFS(adminAddress, newAddress, slotType) {
+//     const maxChildren = 14; // Maximum number of children for each node
+
+//     // Find the admin node
+//     const adminNode = await slotTree.findOne({ address: adminAddress, slotType: slotType });
+//     if (!adminNode) {
+//         console.error('Admin node not found!');
+//         return;
+//     }
+
+//     // Check if the admin node's team has reached its maximum size
+//     if (adminNode.myTeam.length >= maxChildren) {
+//         // If so, create a new node with the same parent as the admin node
+//         const parentNode = await slotTree.findOne({ address: adminNode.parentAddress, slotType: slotType });
+//         if (!parentNode) {
+//             console.error('Parent node not found!');
+//             return;
+//         }
+
+//         // Create a new node with the filled myTeam array
+//         let newNode = new slotTree({ address: adminAddress, slotType: slotType, parentAddress: parentNode.address, myTeam: adminNode.myTeam });
+//         await newNode.save();
+
+//         // Clear the myTeam array of the admin node
+//         adminNode.myTeam = [];
+//         await adminNode.save();
+
+//         // Update the parent node's child reference
+//         if (parentNode.leftAddress === adminAddress) {
+//             parentNode.leftAddress = newNode.address;
+//         } else if (parentNode.rightAddress === adminAddress) {
+//             parentNode.rightAddress = newNode.address;
+//         }
+//         await parentNode.save();
+
+//         // Recur for the new node
+//         return insertAddressBFS(newNode.address, newAddress, slotType);
+//     }
+
+//     // If the admin node's team still has space for a new child
+//     // Proceed with the regular insertion logic
+//     adminNode.myTeam.push(newAddress);
+//     await adminNode.save();
+
+//     // Check if the left child of the admin node is empty
+//     if (!adminNode.leftAddress) {
+//         adminNode.leftAddress = newAddress;
+//         await adminNode.save();
+//         return;
+//     }
+
+//     // Check if the right child of the admin node is empty
+//     if (!adminNode.rightAddress) {
+//         adminNode.rightAddress = newAddress;
+//         await adminNode.save();
+//         return;
+//     }
+
+//     // If both children of the admin node are occupied, find an available position using BFS
+//     const queue = [adminNode];
+//     while (queue.length > 0) {
+//         const currentNode = queue.shift();
+
+//         if (!currentNode.leftAddress) {
+//             currentNode.leftAddress = newAddress;
+//             await currentNode.save();
+//             return;
+//         }
+
+//         if (!currentNode.rightAddress) {
+//             currentNode.rightAddress = newAddress;
+//             await currentNode.save();
+//             return;
+//         }
+
+//         if (currentNode.leftAddress) {
+//             const leftChild = await slotTree.findOne({ address: currentNode.leftAddress, slotType: slotType });
+//             queue.push(leftChild);
+//         }
+//         if (currentNode.rightAddress) {
+//             const rightChild = await slotTree.findOne({ address: currentNode.rightAddress, slotType: slotType });
+//             queue.push(rightChild);
+//         }
+//     }
+
+//     console.error('No available space to insert the new node!');
+// }
