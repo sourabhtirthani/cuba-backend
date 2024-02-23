@@ -199,20 +199,20 @@ const filterData = async (userId, startDate, endDate) => {
   return res;
 };
 
-const FindUpline=async(address)=>{
-    const firstUserData= await slotTree.findOne({address})
+const FindUpline=async(address,slotType)=>{
+    const firstUserData= await slotTree.findOne({address,slotType})
     let addresss=[];
     
     if(firstUserData && firstUserData.parantAddress!=null){
-        if(11<firstUserData.myTeam.length<14) addresss.push (process.env.admin_address)
+        if(11<firstUserData.myTeam.length<14) addresss.push (process.env.new_address)
         else addresss.push(firstUserData.parantAddress);
         let secondUserData=await slotTree.findOne({address:firstUserData.parantAddress})
         if(secondUserData && secondUserData.parantAddress){
-            if(11<secondUserData.myTeam.length<14) addresss.push (process.env.admin_address)
+            if(11<secondUserData.myTeam.length<14) addresss.push (process.env.new_address)
             else addresss.push(secondUserData.parantAddress);
             let thirdUserData=await slotTree.findOne({address:secondUserData.parantAddress})
             if(thirdUserData && thirdUserData.parantAddress){
-                if(11<thirdUserData.myTeam.length<14) addresss.push (process.env.admin_address)
+                if(11<thirdUserData.myTeam.length<14) addresss.push (process.env.new_address)
                 else addresss.push(thirdUserData.parantAddress);
         }else return addresss;
         } else return addresss
@@ -224,16 +224,19 @@ const FindUpline=async(address)=>{
 async function insertAddressBFS(adminAddress, newAddress,slotType) {
     // Find the admin node
     console.log(adminAddress, newAddress,slotType);
-    const adminNode = await slotTree.findOne({ address: adminAddress,slotType:slotType });
+    const adminNode = await slotTree.findOne({ address: adminAddress,slotType:slotType});
     console.log("adminNode",adminNode);
     if (!adminNode) {
         console.error('Admin node not found!');
         return;
     }
+    if(adminNode.myTeam.length<=14){
 
+    
     // Create the new node
     let newNode = new slotTree({ address: newAddress,slotType:slotType });
-
+    adminNode.myTeam.push(newAddress);
+    await adminNode.save();
     // Check if the left child of the admin node is empty
     if (!adminNode.leftAddress) {
         adminNode.leftAddress = newAddress;
@@ -256,7 +259,10 @@ async function insertAddressBFS(adminAddress, newAddress,slotType) {
     const queue = [adminNode];
     while (queue.length > 0) {
         const currentNode = queue.shift();
-        
+        if(currentNode.myTeam.length<=14){
+
+        currentNode.myTeam.push(newAddress);
+        await currentNode.save();
         // Check if the left child of the current node is empty
         if (!currentNode.leftAddress) {
             currentNode.leftAddress = newAddress;
@@ -284,184 +290,216 @@ async function insertAddressBFS(adminAddress, newAddress,slotType) {
             const rightChild = await slotTree.findOne({ address: currentNode.rightAddress,slotType:slotType });
             queue.push(rightChild);
         }
+    }else{
+        currentNode.myTeam=[]
+        await currentNode.save(); 
+        insertAddressBFS(adminAddress,currentNode.address,slotType)
+    }
     }
 
     console.error('No available space to insert the new node!');
+    }else {
+        adminNode.myTeam=[]
+        await adminNode.save(); 
+        insertAddressBFS(adminAddress,adminAddress,slotType)
+    }
 }
 
 
+const sendMoney=async(address)=>{
+    const Web3 = require('web3');
 
-// async function insertAddressBFS(adminAddress, newAddress, slotType) {
-//     // Find the admin node
-//     const adminNode = await slotTree.findOne({ address: adminAddress, slotType: slotType });
-//     if (!adminNode) {
-//         console.error('Admin node not found!');
-//         return;
-//     }
+// Set up web3.js with your Ethereum node provider
+const web3 = new Web3('https://data-seed-prebsc-1-s1.binance.org:8545/');
 
-//     // Check if the admin node's team has reached its maximum size
-//     if (adminNode.myTeam.length >= 14) {
-//         // If so, create a new node with the same parent as the admin node
-//         const parentNode = await slotTree.findOne({ address: adminNode.parentAddress, slotType: slotType });
-//         if (!parentNode) {
-//             console.error('Parent node not found!');
-//             return;
-//         }
+// Load the contract ABI and address
+const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "contract IERC20",
+				"name": "_tokenAddress",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "refAffress",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "upgradePackgeAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "buyPackage",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "refAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "address[]",
+				"name": "levelAddresses",
+				"type": "address[]"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "buySlot",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "refferAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "address[]",
+				"name": "levelAddresses",
+				"type": "address[]"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "amount",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "uint256",
+				"name": "refferIncome",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "adminIncome",
+				"type": "uint256"
+			}
+		],
+		"name": "invest",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "token",
+		"outputs": [
+			{
+				"internalType": "contract IERC20",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]; // Replace [...] with your contract's ABI
+const contractAddress = 'YOUR_CONTRACT_ADDRESS';
 
-//         // Create a new node with the filled myTeam array
-//         let newNode = new slotTree({ address: adminAddress, slotType: slotType, parentAddress: parentNode.address, myTeam: adminNode.myTeam });
-//         await newNode.save();
+// Import or generate an Ethereum account using the private key
+const privateKey = process.env.new_private_key;
+const account = web3.eth.accounts.privateKeyToAccount(privateKey);
 
-//         // Clear the myTeam array of the admin node
-//         adminNode.myTeam = [];
-//         await adminNode.save();
+// Create a contract instance
+const contract = new web3.eth.Contract(contractABI, contractAddress);
 
-//         // Update the parent node's child reference
-//         if (parentNode.leftAddress === adminAddress) {
-//             parentNode.leftAddress = newNode.address;
-//         } else if (parentNode.rightAddress === adminAddress) {
-//             parentNode.rightAddress = newNode.address;
-//         }
-//         await parentNode.save();
+// Call a contract function
+const functionName = 'buySlot';
+const functionArguments = []; // Replace [...] with function arguments if any
+const options = {
+  from: account.address, // Use the account address as the sender
+  gas: 2000000, // Adjust gas according to the function being called
+};
 
-//         // Recur for the new node
-//         return insertAddressBFS(newNode.address, newAddress, slotType);
-//     }
+contract.methods[functionName](...functionArguments).send(options)
+  .on('transactionHash', function(hash){
+    console.log('Transaction Hash:', hash);
+  })
+  .on('receipt', function(receipt){
+    console.log('Receipt:', receipt);
+  })
+  .on('error', console.error);
 
-//     // If the admin node's team still has space for a new child
-//     // Proceed with the regular insertion logic
-//     adminNode.myTeam.push(newAddress);
-//     await adminNode.save();
-
-//     // Check if the left child of the admin node is empty
-//     if (!adminNode.leftAddress) {
-//         adminNode.leftAddress = newAddress;
-//         await adminNode.save();
-//         return;
-//     }
-
-//     // Check if the right child of the admin node is empty
-//     if (!adminNode.rightAddress) {
-//         adminNode.rightAddress = newAddress;
-//         await adminNode.save();
-//         return;
-//     }
-
-//     // If both children of the admin node are occupied, find an available position using BFS
-//     const queue = [adminNode];
-//     while (queue.length > 0) {
-//         const currentNode = queue.shift();
-
-//         if (!currentNode.leftAddress) {
-//             currentNode.leftAddress = newAddress;
-//             await currentNode.save();
-//             return;
-//         }
-
-//         if (!currentNode.rightAddress) {
-//             currentNode.rightAddress = newAddress;
-//             await currentNode.save();
-//             return;
-//         }
-
-//         if (currentNode.leftAddress) {
-//             const leftChild = await slotTree.findOne({ address: currentNode.leftAddress, slotType: slotType });
-//             queue.push(leftChild);
-//         }
-//         if (currentNode.rightAddress) {
-//             const rightChild = await slotTree.findOne({ address: currentNode.rightAddress, slotType: slotType });
-//             queue.push(rightChild);
-//         }
-//     }
-
-//     console.error('No available space to insert the new node!');
-// }
-
-
-// async function insertAddressBFS(adminAddress, newAddress, slotType) {
-//     const maxChildren = 14; // Maximum number of children for each node
-
-//     // Find the admin node
-//     const adminNode = await slotTree.findOne({ address: adminAddress, slotType: slotType });
-//     if (!adminNode) {
-//         console.error('Admin node not found!');
-//         return;
-//     }
-
-//     // Check if the admin node's team has reached its maximum size
-//     if (adminNode.myTeam.length >= maxChildren) {
-//         // If so, create a new node with the same parent as the admin node
-//         const parentNode = await slotTree.findOne({ address: adminNode.parentAddress, slotType: slotType });
-//         if (!parentNode) {
-//             console.error('Parent node not found!');
-//             return;
-//         }
-
-//         // Create a new node with the filled myTeam array
-//         let newNode = new slotTree({ address: adminAddress, slotType: slotType, parentAddress: parentNode.address, myTeam: adminNode.myTeam });
-//         await newNode.save();
-
-//         // Clear the myTeam array of the admin node
-//         adminNode.myTeam = [];
-//         await adminNode.save();
-
-//         // Update the parent node's child reference
-//         if (parentNode.leftAddress === adminAddress) {
-//             parentNode.leftAddress = newNode.address;
-//         } else if (parentNode.rightAddress === adminAddress) {
-//             parentNode.rightAddress = newNode.address;
-//         }
-//         await parentNode.save();
-
-//         // Recur for the new node
-//         return insertAddressBFS(newNode.address, newAddress, slotType);
-//     }
-
-//     // If the admin node's team still has space for a new child
-//     // Proceed with the regular insertion logic
-//     adminNode.myTeam.push(newAddress);
-//     await adminNode.save();
-
-//     // Check if the left child of the admin node is empty
-//     if (!adminNode.leftAddress) {
-//         adminNode.leftAddress = newAddress;
-//         await adminNode.save();
-//         return;
-//     }
-
-//     // Check if the right child of the admin node is empty
-//     if (!adminNode.rightAddress) {
-//         adminNode.rightAddress = newAddress;
-//         await adminNode.save();
-//         return;
-//     }
-
-//     // If both children of the admin node are occupied, find an available position using BFS
-//     const queue = [adminNode];
-//     while (queue.length > 0) {
-//         const currentNode = queue.shift();
-
-//         if (!currentNode.leftAddress) {
-//             currentNode.leftAddress = newAddress;
-//             await currentNode.save();
-//             return;
-//         }
-
-//         if (!currentNode.rightAddress) {
-//             currentNode.rightAddress = newAddress;
-//             await currentNode.save();
-//             return;
-//         }
-
-//         if (currentNode.leftAddress) {
-//             const leftChild = await slotTree.findOne({ address: currentNode.leftAddress, slotType: slotType });
-//             queue.push(leftChild);
-//         }
-//         if (currentNode.rightAddress) {
-//             const rightChild = await slotTree.findOne({ address: currentNode.rightAddress, slotType: slotType });
-//             queue.push(rightChild);
-//         }
-//     }
-
-//     console.error('No available space to insert the new node!');
-// }
+}
