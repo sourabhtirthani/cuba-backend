@@ -630,7 +630,7 @@ async function simulateInsertAddressBFS(adminAddress, newAddress,slotType) {
         if(currentNode.myTeam.length<=14){}else{
             currentNode.myTeam=[]
             // await currentNode.save(); 
-            await simulateInsertAddressBFS(adminAddress,currentNode.address,slotType)
+            // await simulateInsertAddressBFS(adminAddress,currentNode.address,slotType)
             // await sendMoney(currentNode.address,slotType)
         }
 
