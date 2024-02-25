@@ -228,8 +228,8 @@ async function insertAddressBFS(adminAddress, newAddress,slotType) {
     }else {
         adminNode.myTeam=[]
         await adminNode.save(); 
-       await  insertAddressBFS(adminAddress,adminAddress,slotType)
-       await  sendMoney(adminAddress,slotType)
+        await  insertAddressBFS(adminAddress,adminAddress,slotType)
+        await  sendMoney(adminAddress,slotType)
     }
 
     // Create the new node
@@ -574,4 +574,138 @@ const updateSlotNew=async(address , refferAddress, transactionHash ,uplineAddres
     }catch(error){
         console.log(`there is error in data updating ${error}`)
     }
+}
+
+
+
+
+const getUplineWithoutInserting = async(adminAddress, address, slotType)=>{
+    try{
+        const allUplines = simulateInsertAddressBFS(adminAddress, address, slotType);
+        return allUplines;
+        
+    }catch(error){
+        return error;
+    }
+}
+
+async function simulateInsertAddressBFS(adminAddress, newAddress,slotType) {
+    // Find the admin node
+    console.log(adminAddress, newAddress,slotType);
+    const adminNode = await slotTree.findOne({ address: adminAddress,slotType:slotType});
+    console.log("adminNode",adminNode);
+    if (!adminNode) {
+        console.error('Admin node not found!');
+        return;
+    }
+
+    // Create the new node
+    // let newNode = new slotTree({ address: newAddress,slotType:slotType });
+    // if(!(adminNode.myTeam.includes(newAddress))) adminNode.myTeam.push(newAddress);
+    // await adminNode.save();
+    // Check if the left child of the admin node is empty
+    if (!adminNode.leftAddress) {
+        // adminNode.leftAddress = newAddress;
+        let allUplines = simulateFindUpline(adminNode.address , newAddress , slotType);
+        // await adminNode.save();
+        //  newNode = new slotTree({ address: newAddress,slotType:slotType,parantAddress: adminNode.address});
+        //  await newNode.save();
+        return allUplines; // Node inserted as the left child of the admin node
+    }
+
+    // Check if the right child of the admin node is empty
+    if (!adminNode.rightAddress) {
+        // adminNode.rightAddress = newAddress;
+        let allUplines = simulateFindUpline(adminNode.address , newAddress , slotType);
+        // await adminNode.save();
+        // newNode = new slotTree({ address: newAddress,slotType:slotType,parantAddress: adminNode.address});
+        //  await newNode.save();
+        return allUplines; // Node inserted as the right child of the admin node
+    }
+
+    // If both children of the admin node are occupied, use BFS to find an available position
+    const queue = [adminNode];
+    while (queue.length > 0) {
+        const currentNode = queue.shift();
+        if(currentNode.myTeam.length<=14){}else{
+            currentNode.myTeam=[]
+            // await currentNode.save(); 
+            await simulateInsertAddressBFS(adminAddress,currentNode.address,slotType)
+            // await sendMoney(currentNode.address,slotType)
+        }
+
+            if(!(currentNode.myTeam.includes(newAddress))) currentNode.myTeam.push(newAddress);
+        // await currentNode.save();
+        // Check if the left child of the current node is empty
+        if (!currentNode.leftAddress) {
+            currentNode.leftAddress = newAddress;
+            let allUplines = simulateFindUpline(currentNode.address , newAddress , slotType);
+            // await currentNode.save();
+            // newNode = new slotTree({ address: newAddress,slotType:slotType,parantAddress: currentNode.address});
+            // await newNode.save();
+            return allUplines; // Node inserted as the left child of the current node
+        }
+
+        // Check if the right child of the current node is empty
+        if (!currentNode.rightAddress) {
+            // currentNode.rightAddress = newAddress;
+            let allUplines = simulateFindUpline(currentNode.address , newAddress , slotType)
+            // await currentNode.save();
+            // newNode = new slotTree({ address: newAddress,slotType:slotType,parantAddress: currentNode.address});
+            // await newNode.save();
+            return allUplines;// Node inserted as the right child of the current node
+        }
+
+        // Enqueue the left and right children for further exploration
+        if (currentNode.leftAddress) {
+            const leftChild = await slotTree.findOne({ address: currentNode.leftAddress,slotType:slotType });
+            queue.push(leftChild);
+        }
+        if (currentNode.rightAddress) {
+            const rightChild = await slotTree.findOne({ address: currentNode.rightAddress,slotType:slotType });
+            queue.push(rightChild);
+        }
+    
+    }
+    
+}
+
+const simulateFindUpline = async (firstParentAddress , address, slotType) => {
+    console.log(`address : ${address} , and slottype : ${slotType} in the function`)
+    const firstUserData = await slotTree.findOne({ address: firstParentAddress, slotType: slotType })
+    // console.log(`firstuser data is : ${firstUserData}`)
+    let addresss = [];
+    // if(firstParentAddress){
+    // addresss.push(firstParentAddress);
+    // }
+    // else{
+    //     return addresss
+    // }
+    if (firstUserData && firstUserData.parantAddress != null) {
+        console.log(` lenght value is : ${firstUserData.myTeam.length}`)
+        if (11 <= firstUserData.myTeam.length && firstUserData.myTeam.length <= 14) {
+            addresss.push(process.env.new_address);
+            console.log("in the if")
+        }
+        else {
+            // addresss.push(firstUserData.parantAddress);
+            addresss.push(firstParentAddress);
+            console.log("in the else")
+        }
+
+        let secondUserData = await slotTree.findOne({ address: firstParentAddress, slotType: slotType })
+        if (secondUserData && secondUserData.parantAddress != null) {
+            if (11 <= secondUserData.myTeam.length && secondUserData.myTeam.length <= 14) addresss.push(process.env.new_address)
+            else addresss.push(secondUserData.parantAddress);
+            let thirdUserData = await slotTree.findOne({ address: secondUserData.parantAddress, slotType: slotType })
+            if (thirdUserData && thirdUserData.parantAddress != null) {
+                if (11 <= thirdUserData.myTeam.length && thirdUserData.myTeam.length <= 14) addresss.push(process.env.new_address)
+                else  addresss.push(thirdUserData.parantAddress);
+            return addresss;
+            } else return addresss;
+        } else {
+            return addresss
+        }
+    }
+     else return addresss
 }
