@@ -16,44 +16,44 @@ export const buySlot = async (req, res) => {
             return res.status(400).json({ message: "User Not Found" });
         }
 
-        // if (slotType == 20) {
-        //     if (!(exists.packageBought.includes('20') && exists.packageBought.includes('30') && exists.packageBought.includes('80'))) {
-        //         return res.status(400).json({ message: "You can not buy this slot you have to buy 20,30,80 USDT packages " });
-        //     }
-        // } else if (slotType == 50) {
-        //     if (!(exists.packageBought.includes('160'))) {
-        //         return res.status(400).json({ message: "You can not buy this slot you have to buy 160 USDT packages " });
-        //     }
-        // } else if (slotType == 100) {
-        //     if (!(exists.packageBought.includes('320'))) {
-        //         return res.status(400).json({ message: "You can not buy this slot you have to buy 320 USDT packages " });
-        //     }
-        // } else if (slotType == 200) {
-        //     if (!(exists.packageBought.includes('640'))) {
-        //         return res.status(400).json({ message: "You can not buy this slot you have to buy 640 USDT packages " });
-        //     }
-        // } else if (slotType == 500) {
-        //     if (!(exists.packageBought.includes('1280'))) {
-        //         return res.status(400).json({ message: "You can not buy this slot you have to buy 1280 USDT packages " });
-        //     }
-        // } else if (slotType == 800) {
-        //     if (!(exists.packageBought.includes('2560'))) {
-        //         return res.status(400).json({ message: "You can not buy this slot you have to buy 2560 USDT packages " });
-        //     }
-        // } else if (slotType == 1000) {
-        //     if (!(exists.packageBought.includes('5120'))) {
-        //         return res.status(400).json({ message: "You can not buy this slot you have to buy 5120 USDT packages " });
-        //     }
-        // } else if (slotType == 1500) {
-        //     if (!(exists.packageBought.includes('10240'))) {
-        //         return res.status(400).json({ message: "You can not buy this slot you have to buy 10240 USDT packages " });
-        //     }
-        // } else {
-        //     return res.status(400).json({ message: "Invalid Slot" });
-        // }
+        if (slotType == 20) {
+            if (!(exists.packageBought.includes('20') && exists.packageBought.includes('30') && exists.packageBought.includes('80'))) {
+                return res.status(400).json({ message: "You can not buy this slot you have to buy 20,30,80 USDT packages " });
+            }
+        } else if (slotType == 50) {
+            if (!(exists.packageBought.includes('160'))) {
+                return res.status(400).json({ message: "You can not buy this slot you have to buy 160 USDT packages " });
+            }
+        } else if (slotType == 100) {
+            if (!(exists.packageBought.includes('320'))) {
+                return res.status(400).json({ message: "You can not buy this slot you have to buy 320 USDT packages " });
+            }
+        } else if (slotType == 200) {
+            if (!(exists.packageBought.includes('640'))) {
+                return res.status(400).json({ message: "You can not buy this slot you have to buy 640 USDT packages " });
+            }
+        } else if (slotType == 500) {
+            if (!(exists.packageBought.includes('1280'))) {
+                return res.status(400).json({ message: "You can not buy this slot you have to buy 1280 USDT packages " });
+            }
+        } else if (slotType == 800) {
+            if (!(exists.packageBought.includes('2560'))) {
+                return res.status(400).json({ message: "You can not buy this slot you have to buy 2560 USDT packages " });
+            }
+        } else if (slotType == 1000) {
+            if (!(exists.packageBought.includes('5120'))) {
+                return res.status(400).json({ message: "You can not buy this slot you have to buy 5120 USDT packages " });
+            }
+        } else if (slotType == 1500) {
+            if (!(exists.packageBought.includes('10240'))) {
+                return res.status(400).json({ message: "You can not buy this slot you have to buy 10240 USDT packages " });
+            }
+        } else {
+            return res.status(400).json({ message: "Invalid Slot" });
+        }
         let uplinAddress = []
 
-        await simulateInsertAddressBFS(process.env.admin_address, address, slotType)
+        await insertAddressBFS(process.env.admin_address, address, slotType)
         console.log(`address is s${address} , adnd slot ype is : ${slotType}`)
         uplinAddress = await FindUpline(address, slotType);
         console.log("uplinAddress", uplinAddress);
@@ -223,14 +223,7 @@ async function insertAddressBFS(adminAddress, newAddress,slotType) {
         console.error('Admin node not found!');
         return;
     }
-    if(adminNode.myTeam.length<=14){
-
-    }else {
-        adminNode.myTeam=[]
-        await adminNode.save(); 
-        await  insertAddressBFS(adminAddress,adminAddress,slotType)
-        await  sendMoney(adminAddress,slotType)
-    }
+    
 
     // Create the new node
     let newNode = new slotTree({ address: newAddress,slotType:slotType });
@@ -238,6 +231,7 @@ async function insertAddressBFS(adminAddress, newAddress,slotType) {
     await adminNode.save();
     // Check if the left child of the admin node is empty
     if (!adminNode.leftAddress) {
+        
         adminNode.leftAddress = newAddress;
         await adminNode.save();
          newNode = new slotTree({ address: newAddress,slotType:slotType,parantAddress: adminNode.address});
@@ -258,12 +252,7 @@ async function insertAddressBFS(adminAddress, newAddress,slotType) {
     const queue = [adminNode];
     while (queue.length > 0) {
         const currentNode = queue.shift();
-        if(currentNode.myTeam.length<=14){}else{
-            currentNode.myTeam=[]
-            await currentNode.save(); 
-            await insertAddressBFS(adminAddress,currentNode.address,slotType)
-            await sendMoney(currentNode.address,slotType)
-        }
+       
 
             if(!(currentNode.myTeam.includes(newAddress))) currentNode.myTeam.push(newAddress);
         await currentNode.save();
@@ -610,7 +599,7 @@ async function simulateInsertAddressBFS(adminAddress, newAddress,slotType) {
         // await adminNode.save();
         //  newNode = new slotTree({ address: newAddress,slotType:slotType,parantAddress: adminNode.address});
         //  await newNode.save();
-        console.log("in this left")
+        console.log("in this left",adminNode.leftAddress)
         return allUplines; // Node inserted as the left child of the admin node
     }
 
@@ -621,7 +610,7 @@ async function simulateInsertAddressBFS(adminAddress, newAddress,slotType) {
         // await adminNode.save();
         // newNode = new slotTree({ address: newAddress,slotType:slotType,parantAddress: adminNode.address});
         //  await newNode.save();
-        console.log("in this right");
+        console.log("in this right",adminNode.rightAddress);
         return allUplines; // Node inserted as the right child of the admin node
     }
 
@@ -653,15 +642,14 @@ async function simulateInsertAddressBFS(adminAddress, newAddress,slotType) {
             console.log("Here is in while rights node")
             return allUplines;// Node inserted as the right child of the current node
         }
-        console.log("currentNode",currentNode);
         // Enqueue the left and right children for further exploration
         if (currentNode.leftAddress) {
-            console.log("Here is current node left")
+            console.log("Here is current node left",currentNode.leftAddress);
             const leftChild = await slotTree.findOne({ address: currentNode.leftAddress,slotType:slotType });
             queue.push(leftChild);
         }
         if (currentNode.rightAddress) {
-            console.log("Here is current node rigt")
+            console.log("Here is current node rigt",currentNode.rightAddress)
             const rightChild = await slotTree.findOne({ address: currentNode.rightAddress,slotType:slotType });
             queue.push(rightChild);
         }
